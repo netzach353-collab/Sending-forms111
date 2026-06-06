@@ -1,1 +1,907 @@
 
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>צ'אנס - טופס צ'ק</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playpen+Sans+Hebrew:wght@400;700&family=Suez+One&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #cccccc94; font-family: 'Playpen Sans Hebrew', cursive; direction: rtl; min-height: 100vh; }
+
+    /* TOP BAR */
+    .topbar {
+      width: 100%; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px;
+      background: linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 100%);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar a { display: flex; align-items: center; gap: 8px; color: white; text-decoration: none; font-weight: bold; font-size: 14px; transition: opacity 0.2s; }
+    .topbar a:hover { opacity: 0.75; }
+    .topbar-title { color: white; font-weight: bold; font-size: 16px; padding: 4px 12px; border-radius: 12px; }
+
+    /* MAIN */
+    .main { max-width: 700px; margin: 0 auto; padding: 24px 16px 60px; display: flex; flex-direction: column; gap: 18px; }
+    .page-title { text-align: center; font-family: 'Playpen Sans Hebrew', cursive; font-size: 48px; font-weight: 800; color: #16a34a; }
+    .page-subtitle { text-align: center; color: #666; font-size: 14px; margin-top: 4px; }
+
+    /* DROPDOWN */
+    .dropdown-wrap { position: relative; }
+    .dropdown-btn {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      background: white; border-radius: 16px; padding: 16px 20px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1); border: 1px solid #e5e5e5;
+      font-family: 'Playpen Sans Hebrew', cursive; font-weight: bold; font-size: 17px;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .dropdown-btn:hover { background: #f9f9f9; }
+    .dropdown-btn .arrow { transition: transform 0.2s; font-size: 14px; }
+    .dropdown-btn.open .arrow { transform: rotate(180deg); }
+    .dropdown-menu {
+      position: absolute; top: calc(100% + 8px); width: 100%;
+      background: white; border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15); border: 1px solid #e5e5e5;
+      z-index: 100; overflow: hidden;
+      display: none;
+    }
+    .dropdown-menu.open { display: block; }
+    .dropdown-group-label {
+      padding: 10px 16px 4px; font-family: 'Suez One', serif;
+      font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 1px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .dropdown-group-label:first-child { border-top: none; }
+    .dropdown-item {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 20px; font-family: 'Playpen Sans Hebrew', cursive; font-size: 15px;
+      color: #333; cursor: pointer; border: none; background: none; text-align: right;
+      transition: background 0.12s;
+    }
+    .dropdown-item:hover { background: #f5fdf5; }
+    .dropdown-item.active { background: #f0fdf4; color: #16a34a; font-weight: bold; }
+    .dropdown-item .desc { font-size: 12px; color: #aaa; }
+
+    /* BANNER */
+    .banner {
+      background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px;
+      padding: 12px 16px; text-align: center; font-size: 14px; color: #166534; font-weight: bold;
+    }
+
+    /* ACTIONS */
+    .actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 24px; border-radius: 999px;
+      font-family: 'Playpen Sans Hebrew', cursive; font-weight: bold; font-size: 15px;
+      cursor: pointer; border: none; transition: transform 0.15s, opacity 0.15s;
+    }
+    .btn:hover { transform: scale(1.05); }
+    .btn:active { transform: scale(0.96); }
+    .btn-auto { background: linear-gradient(135deg,#f59e0b,#d97706); color: white; box-shadow: 0 4px 14px rgba(245,158,11,0.4); }
+    .btn-clear { background: white; color: #333; border: 2px solid #ddd; }
+    .btn-submit {
+      width: 100%; justify-content: center; padding: 16px 24px; border-radius: 16px;
+      font-size: 18px; background: linear-gradient(135deg,#16a34a,#15803d); color: white;
+      box-shadow: 0 6px 20px rgba(22,163,74,0.4); cursor: pointer;
+      font-family: 'Playpen Sans Hebrew', cursive; font-weight: bold;
+      border: none; transition: transform 0.15s, opacity 0.2s;
+    }
+    .btn-submit:hover:not(:disabled) { transform: scale(1.02); }
+    .btn-submit:disabled { background: linear-gradient(135deg,#9ca3af,#6b7280); box-shadow: none; opacity: 0.5; cursor: not-allowed; }
+
+    /* SUITS GRID */
+    .suits-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    @media(max-width: 520px) { .suits-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .suit-col { display: flex; flex-direction: column; }
+
+    /* Suit header */
+    .suit-header {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 12px 8px; border-radius: 14px; border: 2px solid #ddd;
+      cursor: pointer; transition: all 0.2s; background: #f5f5f5;
+      user-select: none;
+    }
+    .suit-header:not(.no-toggle):hover { opacity: 0.85; transform: scale(1.03); }
+    .suit-symbol { font-size: 30px; line-height: 1; }
+    .suit-name { font-family: 'Suez One', serif; font-size: 13px; }
+    .suit-status { font-size: 11px; }
+    .suit-count { font-size: 12px; font-weight: bold; margin-top: 2px; }
+
+    .suit-header.active { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: none; box-shadow: 0 3px 10px rgba(0,0,0,0.12); }
+
+    /* Cards panel */
+    .cards-panel {
+      border: 2px solid; border-top: none;
+      border-bottom-left-radius: 14px; border-bottom-right-radius: 14px;
+      background: white; padding: 8px;
+      display: none;
+    }
+    .cards-panel.active { display: block; }
+    .cards-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+    .card-btn {
+      border-radius: 8px; padding: 8px 4px; text-align: center;
+      font-family: 'Suez One', serif; font-size: 15px; font-weight: bold;
+      border: 2px solid #e5e5e5; background: white;
+      cursor: pointer; transition: all 0.15s; user-select: none;
+    }
+    .card-btn:hover:not(:disabled) { transform: scale(1.08); }
+    .card-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+    .card-btn.selected { color: white !important; box-shadow: 0 3px 10px rgba(0,0,0,0.2); transform: scale(0.95); }
+
+    /* TOAST */
+    .toast-wrap { position: fixed; bottom: 50%; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+    .toast { padding: 12px 24px; border-radius: 12px; font-weight: bold; font-size: 14px; color: white; box-shadow: 0 4px 16px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; white-space: nowrap; }
+    .toast-success { background: #16a34a; }
+    .toast-error { background: #dc2626; }
+    @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+    /* LOGIN / LOGOUT MODAL */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-box {
+  width: 100%;
+  max-width: 380px;
+  background: white;
+  border-radius: 18px;
+  padding: 22px;
+  text-align: center;
+  box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+  animation: modalPop .18s ease;
+}
+
+.modal-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.modal-text {
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* LOGIN BUTTON */
+
+#loginBtn {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+/* MOBILE */
+
+@media (max-width: 480px) {
+
+  .topbar {
+    height: auto;
+    min-height: 60px;
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .topbar-title {
+    font-size: 13px;
+  }
+
+  .topbar a {
+    font-size: 12px;
+  }
+
+  #loginBtn {
+    padding: 8px 10px;
+    font-size: 12px;
+    max-width: 120px;
+  }
+
+  .modal-box {
+    max-width: 100%;
+    padding: 18px;
+  }
+
+  .modal-title {
+    font-size: 18px;
+  }
+
+  .modal-text {
+    font-size: 14px;
+  }
+
+  .modal-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.saved-form {
+  position: relative;
+  background: white;
+  border: 1px solid #bbf7d0;
+  border-radius: 14px;
+  padding: 12px 48px 12px 12px;
+  margin-top: 10px;
+  text-align: right;
+  color: #166534;
+}
+
+.saved-form-title {
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.saved-form-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.saved-chip {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.saved-delete-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.saved-delete-btn:hover {
+  background: #dc2626;
+  color: white;
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: white;
+  box-shadow: 0 4px 14px rgba(22,163,74,0.4);
+}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    חזרה
+  </a>
+
+  <button class="btn btn-clear" id="loginBtn" onclick="showLoginModal()">
+  התחבר עם Google
+</button>
+
+  <span class="topbar-title">טופס צ'ק</span>
+</div>
+
+<div class="main">
+  <div>
+    <div class="page-title">צ'אנס</div>
+    <div class="page-subtitle">בחר סוג משחק והתחל למלא</div>
+  </div>
+
+  <!-- Mode dropdown -->
+  <div class="dropdown-wrap">
+    <button class="dropdown-btn" id="dropdownBtn" onclick="toggleDropdown()">
+      <span id="dropdownLabel" style="color:#aaa">— בחר סוג משחק —</span>
+      <span class="arrow">▾</span>
+    </button>
+    <div class="dropdown-menu" id="dropdownMenu">
+      <div class="dropdown-group-label">טופס רגיל</div>
+      <button class="dropdown-item" onclick="selectMode('chance1')"><span>צ'אנס 1</span><span class="desc">עמודה אחת, קלף אחד</span></button>
+      <button class="dropdown-item" onclick="selectMode('chance2')"><span>צ'אנס 2</span><span class="desc">2 עמודות, קלף אחד מכל אחת</span></button>
+      <button class="dropdown-item" onclick="selectMode('chance3')"><span>צ'אנס 3</span><span class="desc">3 עמודות, קלף אחד מכל אחת</span></button>
+      <button class="dropdown-item" onclick="selectMode('chance4')"><span>צ'אנס 4</span><span class="desc">4 עמודות, קלף אחד מכל אחת</span></button>
+      <div class="dropdown-group-label">שיטתי</div>
+      <button class="dropdown-item" onclick="selectMode('sys1')"><span>צ'אנס שיטתי 1</span><span class="desc">עמודה אחת, 2–4 קלפים</span></button>
+      <button class="dropdown-item" onclick="selectMode('sys2')"><span>צ'אנס שיטתי 2</span><span class="desc">2 עמודות, 2–4 קלפים מכל אחת</span></button>
+      <button class="dropdown-item" onclick="selectMode('sys3')"><span>צ'אנס שיטתי 3</span><span class="desc">3 עמודות, 2–4 קלפים מכל אחת</span></button>
+      <button class="dropdown-item" onclick="selectMode('sys4')"><span>צ'אנס שיטתי 4</span><span class="desc">4 עמודות, 2–4 קלפים מכל אחת</span></button>
+      <div class="dropdown-group-label">מיוחד</div>
+      <button class="dropdown-item" onclick="selectMode('multi')"><span>רב צ'אנס</span><span class="desc">קלף אחד מכל 4 עמודות</span></button>
+    </div>
+  </div>
+
+  <!-- Banner -->
+  <div class="banner" id="banner" style="display:none"></div>
+
+  <!-- Actions -->
+  <div class="actions" id="actions" style="display:none">
+    <button class="btn btn-auto" onclick="autoFill()">✦ מילוי אוטומטי</button>
+    <button class="btn btn-clear" onclick="clearAll()">🗑 נקה הכל</button>
+    <button class="btn btn-confirm" id="confirmBtn" onclick="confirmCurrentForm()" style="display:none;">
+  ✅ אישור טופס
+</button>
+  </div>
+
+  <!-- Suits -->
+  <div class="suits-grid" id="suitsGrid" style="display:none">
+    <!-- built by JS -->
+  </div>
+
+<div class="banner" id="savedFormsBox" style="display:none;">
+  <div><strong>הטפסים שאישרת</strong> <span id="formsCount">0</span></div>
+  <div id="formsList"></div>
+</div>
+
+
+  <!-- Submit -->
+  <button class="btn-submit" id="submitBtn" style="display:none" onclick="submitForm()" disabled>
+    ✈ שלח טופס
+  </button>
+</div>
+
+
+
+<div class="modal-overlay" id="modalOverlay" style="display:none;">
+  <div class="modal-box" id="modalBox"></div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+  const SUPABASE_URL = 'https://ikjgwgkucvfvujuodflf.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_Chq48eYxHD3Y-cmbK8JoxA_luOwIJ9y';
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+
+async function loginWithGoogle() {
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.href,
+      queryParams: {
+        prompt: 'select_account'
+      }
+    }
+  });
+
+  if (error) showToast('שגיאה בהתחברות', 'error');
+}
+
+let isSubmitting = false;
+let savedForms = [];
+
+async function checkUser() {
+  const { data } = await supabaseClient.auth.getSession();
+  console.log(data.session); 
+  currentUser = data.session?.user || null;
+
+  updateLoginButton();
+}
+
+function requireLogin() {
+  if (!currentUser) {
+    showLoginModal();
+    return false;
+  }
+
+  return true;
+}
+
+async function logout() {
+  await supabaseClient.auth.signOut();
+
+  currentUser = null;
+  closeModal();
+  updateLoginButton();
+
+  showToast('התנתקת מהחשבון', 'success');
+}
+
+function openModal(html) {
+  document.getElementById('modalBox').innerHTML = html;
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').style.display = 'none';
+}
+
+function showLoginModal() {
+  openModal(`
+    <div class="modal-title">נדרשת התחברות</div>
+    <div class="modal-text">
+      כדי למלא ולשלוח טופס צ׳אנס, צריך להתחבר עם Google.
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-auto" onclick="loginWithGoogle()">
+        התחברות מהירה עם Google
+      </button>
+      <button class="btn btn-clear" onclick="closeModal()">
+        ביטול
+      </button>
+    </div>
+  `);
+}
+
+function showLogoutModal() {
+  openModal(`
+    <div class="modal-title">יציאה מהחשבון</div>
+    <div class="modal-text">אתה בטוח שאתה רוצה לצאת?</div>
+    <div class="modal-actions">
+      <button class="btn btn-auto" onclick="logout()">כן, צא</button>
+      <button class="btn btn-clear" onclick="closeModal()">ביטול</button>
+    </div>
+  `);
+}
+let currentUser = null;
+
+  const SUITS = [
+    { id: 'spades',   label: 'ספייד',  symbol: '♠', color: '#1a1a2e' },
+    { id: 'hearts',   label: 'לב',     symbol: '♥', color: '#c0392b' },
+    { id: 'diamonds', label: 'יהלום',  symbol: '♦', color: '#c0392b' },
+    { id: 'clubs',    label: 'תלתן',   symbol: '♣', color: '#1a1a2e' },
+  ];
+  const CARDS = ['7','8','9','10','J','Q','K','A'];
+
+  const MODES = {
+    chance1: { label:"צ'אנס 1",        suitsMax:1, cardsMin:1, cardsMax:1, desc:"בחר עמודה אחת + קלף אחד" },
+    chance2: { label:"צ'אנס 2",        suitsMax:2, cardsMin:1, cardsMax:1, desc:"בחר 2 עמודות + קלף אחד מכל אחת" },
+    chance3: { label:"צ'אנס 3",        suitsMax:3, cardsMin:1, cardsMax:1, desc:"בחר 3 עמודות + קלף אחד מכל אחת" },
+    chance4: { label:"צ'אנס 4",        suitsMax:4, cardsMin:1, cardsMax:1, desc:"בחר 4 עמודות + קלף אחד מכל אחת" },
+    sys1:    { label:"צ'אנס שיטתי 1",  suitsMax:1, cardsMin:2, cardsMax:4, desc:"בחר עמודה אחת + 2–4 קלפים" },
+    sys2:    { label:"צ'אנס שיטתי 2",  suitsMax:2, cardsMin:2, cardsMax:4, desc:"בחר 2 עמודות + 2–4 קלפים מכל אחת" },
+    sys3:    { label:"צ'אנס שיטתי 3",  suitsMax:3, cardsMin:2, cardsMax:4, desc:"בחר 3 עמודות + 2–4 קלפים מכל אחת" },
+    sys4:    { label:"צ'אנס שיטתי 4",  suitsMax:4, cardsMin:2, cardsMax:4, desc:"בחר 4 עמודות + 2–4 קלפים מכל אחת" },
+    multi:   { label:"רב צ'אנס",       suitsMax:4, cardsMin:1, cardsMax:1, desc:"קלף אחד בדיוק מכל 4 עמודות", allRequired:true },
+  };
+
+  let currentMode = null;
+  let activeSuits = [];       // which suits are toggled on
+  let selections = {};        // { suitId: [cards] }
+
+  // ---- DROPDOWN ----
+  function toggleDropdown() {
+    const menu = document.getElementById('dropdownMenu');
+    const btn  = document.getElementById('dropdownBtn');
+    const open = menu.classList.toggle('open');
+    btn.classList.toggle('open', open);
+  }
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.dropdown-wrap')) {
+      document.getElementById('dropdownMenu').classList.remove('open');
+      document.getElementById('dropdownBtn').classList.remove('open');
+    }
+  });
+
+  function selectMode(modeId) {
+    if (!requireLogin()) return;
+    currentMode = modeId;
+    activeSuits = [];
+    selections  = {};
+    document.getElementById('dropdownLabel').textContent = MODES[modeId].label;
+    document.getElementById('dropdownLabel').style.color = '#16a34a';
+    document.getElementById('dropdownMenu').classList.remove('open');
+    document.getElementById('dropdownBtn').classList.remove('open');
+
+    // Show / update UI
+    document.getElementById('banner').style.display = 'block';
+    document.getElementById('banner').textContent = MODES[modeId].desc +
+      (MODES[modeId].allRequired ? '' : ' — לחץ על שם הצורה לבחירה');
+    document.getElementById('actions').style.display = 'flex';
+    document.getElementById('suitsGrid').style.display = 'grid';
+    document.getElementById('submitBtn').style.display = 'block';
+
+    buildSuits();
+    updateSubmit();
+  }
+
+  // ---- BUILD SUITS ----
+  function buildSuits() {
+    const mode = MODES[currentMode];
+    const grid = document.getElementById('suitsGrid');
+    grid.innerHTML = '';
+
+    SUITS.forEach(suit => {
+      const isAllRequired = !!mode.allRequired;
+      const col = document.createElement('div');
+      col.className = 'suit-col';
+      col.id = 'col-' + suit.id;
+
+      const isRed = suit.id === 'hearts' || suit.id === 'diamonds';
+      const headerBg = isRed ? 'linear-gradient(135deg,#fff0f0,#ffe0e0)' : 'linear-gradient(135deg,#f0f4ff,#e0e8ff)';
+
+      // Header
+      const header = document.createElement('div');
+      header.className = 'suit-header' + (isAllRequired ? ' no-toggle' : '');
+      header.id = 'header-' + suit.id;
+      header.innerHTML = `
+        <span class="suit-symbol" style="color:${suit.color}">${suit.symbol}</span>
+        <span class="suit-name" style="color:${suit.color}">${suit.label}</span>
+        <span class="suit-status" id="status-${suit.id}" style="color:${suit.color}">
+          ${isAllRequired ? 'חובה למלא' : 'לחץ לבחירה'}
+        </span>
+        <span class="suit-count" id="count-${suit.id}" style="color:${suit.color}"></span>
+      `;
+      if (!isAllRequired) {
+        header.onclick = () => toggleSuit(suit.id);
+      } else {
+        // auto-activate all suits for multi
+        activeSuits = SUITS.map(s => s.id);
+        header.style.background = headerBg;
+        header.style.borderColor = suit.color;
+        header.classList.add('active');
+      }
+      col.appendChild(header);
+
+      // Cards panel
+      const panel = document.createElement('div');
+      panel.className = 'cards-panel' + (isAllRequired ? ' active' : '');
+      panel.id = 'panel-' + suit.id;
+      panel.style.borderColor = suit.color;
+      const inner = document.createElement('div');
+      inner.className = 'cards-inner';
+
+      CARDS.forEach(card => {
+        const btn = document.createElement('button');
+        btn.className = 'card-btn';
+        btn.id = `card-${suit.id}-${card}`;
+        btn.style.color = suit.color;
+        btn.textContent = card;
+        btn.onclick = () => toggleCard(suit.id, card);
+        inner.appendChild(btn);
+      });
+
+      panel.appendChild(inner);
+      col.appendChild(panel);
+      grid.appendChild(col);
+    });
+  }
+
+  // ---- TOGGLE SUIT ----
+  function toggleSuit(suitId) {
+    if (!requireLogin()) return;
+    const mode = MODES[currentMode];
+    if (activeSuits.includes(suitId)) {
+      // Deactivate
+      activeSuits = activeSuits.filter(s => s !== suitId);
+      selections[suitId] = [];
+      updateSuitUI(suitId, false);
+    } else {
+      if (activeSuits.length >= mode.suitsMax) return; // already at max
+      activeSuits.push(suitId);
+      updateSuitUI(suitId, true);
+    }
+    renderCards(suitId);
+    updateSubmit();
+  }
+
+  function updateSuitUI(suitId, active) {
+    const suit = SUITS.find(s => s.id === suitId);
+    const isRed = suitId === 'hearts' || suitId === 'diamonds';
+    const header = document.getElementById('header-' + suitId);
+    const status = document.getElementById('status-' + suitId);
+
+    if (active) {
+      const bg = isRed ? 'linear-gradient(135deg,#fff0f0,#ffe0e0)' : 'linear-gradient(135deg,#f0f4ff,#e0e8ff)';
+      header.style.background = bg;
+      header.style.borderColor = suit.color;
+      header.classList.add('active');
+      status.textContent = '✓ נבחר';
+    } else {
+      header.style.background = '#f5f5f5';
+      header.style.borderColor = '#ddd';
+      header.classList.remove('active');
+      status.textContent = 'לחץ לבחירה';
+    }
+  }
+
+  // ---- TOGGLE CARD ----
+  function toggleCard(suitId, card) {
+    if (!activeSuits.includes(suitId)) return;
+    const mode = MODES[currentMode];
+    const sel = selections[suitId] || [];
+
+    if (sel.includes(card)) {
+      selections[suitId] = sel.filter(c => c !== card);
+    } else {
+      if (sel.length >= mode.cardsMax) return;
+      selections[suitId] = [...sel, card];
+    }
+    renderCards(suitId);
+    updateSubmit();
+  }
+
+  function renderCards(suitId) {
+    const suit = SUITS.find(s => s.id === suitId);
+    const mode = MODES[currentMode];
+    const isActive = activeSuits.includes(suitId);
+    const sel = selections[suitId] || [];
+    const panel = document.getElementById('panel-' + suitId);
+
+    // Show/hide panel
+    if (isActive) panel.classList.add('active');
+    else { panel.classList.remove('active'); return; }
+
+    // Update card buttons
+    CARDS.forEach(card => {
+      const btn = document.getElementById(`card-${suitId}-${card}`);
+      const isSelected = sel.includes(card);
+      const atMax = sel.length >= mode.cardsMax && !isSelected;
+
+      btn.disabled = atMax;
+      btn.classList.toggle('selected', isSelected);
+      if (isSelected) {
+        btn.style.background = suit.color;
+        btn.style.borderColor = suit.color;
+        btn.style.color = 'white';
+      } else {
+        btn.style.background = 'white';
+        btn.style.borderColor = '#e5e5e5';
+        btn.style.color = suit.color;
+      }
+    });
+
+    // Update count badge
+    const countEl = document.getElementById('count-' + suitId);
+    countEl.textContent = `${sel.length}/${mode.cardsMax}${mode.cardsMin > 1 ? ` (מינ׳ ${mode.cardsMin})` : ''}`;
+  }
+
+  // ---- VALIDATION ----
+  function isValid() {
+    if (!currentMode) return false;
+    const mode = MODES[currentMode];
+    if (activeSuits.length !== mode.suitsMax) return false;
+    return activeSuits.every(sid => (selections[sid]?.length || 0) >= mode.cardsMin);
+  }
+
+ function updateSubmit() {
+  const valid = isValid();
+
+  document.getElementById("confirmBtn").style.display = valid ? "inline-flex" : "none";
+  document.getElementById("submitBtn").disabled = savedForms.length === 0;
+}
+
+function confirmCurrentForm() {
+  if (!isValid()) return;
+
+  savedForms.push({
+    mode: currentMode,
+    modeLabel: MODES[currentMode].label,
+    selections: JSON.parse(JSON.stringify(selections))
+  });
+
+  renderSavedForms();
+
+  currentMode = null;
+  activeSuits = [];
+  selections = {};
+
+  document.getElementById("dropdownLabel").textContent = "— בחר סוג משחק —";
+  document.getElementById("dropdownLabel").style.color = "#aaa";
+  document.getElementById("banner").style.display = "none";
+  document.getElementById("actions").style.display = "none";
+  document.getElementById("suitsGrid").style.display = "none";
+  document.getElementById("submitBtn").style.display = "block";
+
+  showToast("הטופס אושר ונשמר ברשימה", "success");
+  updateSubmit();
+}
+
+function renderSavedForms() {
+  document.getElementById("savedFormsBox").style.display = "block";
+  document.getElementById("formsCount").textContent = savedForms.length;
+
+  document.getElementById("formsList").innerHTML = savedForms.map((form, index) => {
+    const details = Object.entries(form.selections)
+      .map(([suitId, cards]) => {
+        const suit = SUITS.find(s => s.id === suitId);
+        return cards.map(card => `
+          <span class="saved-chip">
+            ${suit.symbol} ${card}
+          </span>
+        `).join("");
+      })
+      .join("");
+
+    return `
+      <div class="saved-form">
+        <button class="saved-delete-btn" onclick="deleteSavedForm(${index})">×</button>
+
+        <div class="saved-form-title">
+          טופס ${index + 1} - ${form.modeLabel}
+        </div>
+
+        <div class="saved-form-details">
+          ${details}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("submitBtn").disabled = savedForms.length === 0;
+}
+
+function deleteSavedForm(index) {
+  savedForms.splice(index, 1);
+  renderSavedForms();
+}
+
+  // ---- AUTO FILL ----
+  function autoFill() {
+    if (!requireLogin()) return;
+    const mode = MODES[currentMode];
+    const shuffledSuits = [...SUITS].sort(() => Math.random() - 0.5).slice(0, mode.suitsMax);
+    activeSuits = shuffledSuits.map(s => s.id);
+    selections = {};
+
+    activeSuits.forEach(sid => {
+      const count = mode.cardsMin === mode.cardsMax
+        ? mode.cardsMin
+        : mode.cardsMin + Math.floor(Math.random() * (mode.cardsMax - mode.cardsMin + 1));
+      selections[sid] = [...CARDS].sort(() => Math.random() - 0.5).slice(0, count);
+    });
+
+    // Re-render all suits
+    buildSuits();
+    activeSuits.forEach(sid => {
+      updateSuitUI(sid, true);
+      renderCards(sid);
+    });
+    updateSubmit();
+  }
+
+  // ---- CLEAR ----
+  function clearAll() {
+    activeSuits = [];
+    selections = {};
+    buildSuits();
+    if (MODES[currentMode].allRequired) {
+      activeSuits = SUITS.map(s => s.id);
+    }
+    updateSubmit();
+  }
+
+  // ---- SUBMIT ----
+async function submitForm() {
+
+  if (isSubmitting) return;
+
+isSubmitting = true;
+
+const submitBtn = document.getElementById("submitBtn");
+submitBtn.disabled = true;
+submitBtn.innerHTML = "⏳ שולח...";
+
+ if (savedForms.length === 0) {
+  showToast("אין טפסים לשליחה. אשר לפחות טופס אחד", "error");
+
+  isSubmitting = false;
+  submitBtn.disabled = false;
+  submitBtn.innerHTML = "✈ שלח טופס";
+
+  return;
+}
+
+  const { data } = await supabaseClient.auth.getUser();
+  currentUser = data.user;
+
+  if (!currentUser) {
+    showLoginModal();
+    isSubmitting = false;
+submitBtn.disabled = false;
+submitBtn.innerHTML = "✈ שלח טופס";
+    return;
+  }
+
+const rows = savedForms.map(form => ({
+  user_id: currentUser.id,
+  user_email: currentUser.email,
+  user_name: currentUser.user_metadata.full_name || currentUser.email,
+  mode: form.mode,
+  selections: form.selections,
+  status: "pending"
+}));
+
+ const { error } = await supabaseClient
+  .from("chance_forms")
+  .insert(rows);
+
+  if (error) {
+
+    isSubmitting = false;
+submitBtn.disabled = false;
+submitBtn.innerHTML = "✈ שלח טופס";
+
+    console.error(error);
+    showToast('שגיאה בשליחה לסופרבייס', 'error');
+    return;
+  }
+
+showToast('הטפסים נשלחו וממתינים לאישור!', 'success');
+
+submitBtn.innerHTML = "✅ נשלח";
+
+setTimeout(() => {
+  window.location.replace("my-forms.html");
+}, 500);
+}
+
+  // ---- TOAST ----
+  function showToast(msg, type) {
+    const wrap = document.getElementById('toastWrap');
+    const el = document.createElement('div');
+    el.className = `toast toast-${type}`;
+    el.textContent = msg;
+    wrap.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+
+  checkUser();
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+  currentUser = session?.user || null;
+  updateLoginButton();
+});
+
+function updateLoginButton() {
+  const loginBtn = document.getElementById('loginBtn');
+
+  if (currentUser) {
+    loginBtn.textContent =
+      currentUser.user_metadata.full_name || currentUser.email;
+
+    loginBtn.onclick = showLogoutModal;
+    closeModal();
+  } else {
+    loginBtn.textContent = 'התחבר עם Google';
+    loginBtn.onclick = showLoginModal;
+  }
+}
+</script>
+</body>
+</html>
