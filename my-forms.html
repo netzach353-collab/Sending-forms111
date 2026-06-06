@@ -162,6 +162,9 @@
     חזרה
   </a>
   <span class="topbar-title">טופס צ'ק</span>
+  <button id="adminBtn" onclick="openAdminPanel()" style="display:none;">
+  ניהול
+</button>
 </div>
 
 <div class="main">
@@ -203,6 +206,13 @@
   <img id="lightboxImg" src="" alt="קבלה" />
 </div>
 
+
+<div id="adminPanel" style="display:none; position:fixed; top:0; right:0; width:280px; height:100vh; background:white; z-index:999; box-shadow:-4px 0 20px #0005; padding:16px; overflow:auto;">
+  <button onclick="closeAdminPanel()">סגור</button>
+  <h3>משתמשים</h3>
+  <div id="adminUsersList"></div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
@@ -225,7 +235,8 @@ const STATUS_LABELS = {
 
 let currentFilter = "all";
 let isAdmin = false;
-  
+let realtimeStarted = false;
+
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString("he-IL", {
     day: "2-digit", month: "2-digit", year: "numeric",
@@ -250,6 +261,11 @@ async function loadMyForms() {
     return;
   }
 
+  if (!realtimeStarted) {
+  listenToMyForms(user.id);
+  realtimeStarted = true;
+}
+
   const { data: adminCheck, error: adminError } = await supabaseClient.rpc("is_admin");
 
 if (adminError) {
@@ -259,6 +275,10 @@ if (adminError) {
 isAdmin = adminCheck === true;
 console.log("isAdmin:", isAdmin);
   
+  if (isAdmin) {
+  document.getElementById("adminBtn").style.display = "block";
+}
+
 const [lottoResult, chanceResult, game123Result] = await Promise.all([
   supabaseClient
     .from("lotto_forms")
@@ -283,6 +303,7 @@ const [lottoResult, chanceResult, game123Result] = await Promise.all([
     gameEmoji: "🎱",
     gameColor: "#c0392b",
     status: row.status || "pending",
+    tableName: "lotto_forms",
     created_at: row.created_at,
     form_data: {
       numbers: row.numbers,
@@ -294,6 +315,7 @@ const [lottoResult, chanceResult, game123Result] = await Promise.all([
     id: row.id,
     game: "chance",
     gameLabel: "צ'אנס",
+    tableName: "chance_forms",
     gameEmoji: "🃏",
     gameColor: "#16a34a",
     status: row.status || "pending",
@@ -307,6 +329,7 @@ const [lottoResult, chanceResult, game123Result] = await Promise.all([
   id: row.id,
   game: "123",
   gameLabel: "123",
+  tableName: "game123_forms",
   gameEmoji: "🔢",
   gameColor: "#ea580c",
   status: row.status || "pending",
@@ -415,6 +438,14 @@ function openModal(id) {
     ${buildFormDetails(order)}
   </div>`;
 
+  if (isAdmin && order.status !== "approved") {
+  html += `
+    <button onclick="approveOrder('${order.id}', '${order.tableName}')" style="width:100%; padding:14px; border:none; border-radius:14px; background:#16a34a; color:white; font-weight:bold; font-size:16px;">
+      אשר טופס
+    </button>
+  `;
+}
+
   // Notes
   if (order.notes) {
     html += `<div class="notes-box">💬 ${order.notes}</div>`;
@@ -468,6 +499,215 @@ function closeLightbox() {
 function handlePay(id) {
   // TODO: חבר לטרנזילה / Tranzila כאן
   alert('מעבר לתשלום עבור הזמנה ' + id + '\n\nחבר כאן לדף תשלום טרנזילה');
+}
+
+function openAdminPanel() {
+  document.getElementById("adminPanel").style.display = "block";
+  loadAdminUsers();
+}
+
+function closeAdminPanel() {
+  document.getElementById("adminPanel").style.display = "none";
+}
+
+async function loadAdminUsers() {
+  const [lottoResult, chanceResult, game123Result] = await Promise.all([
+    supabaseClient.from("lotto_forms").select("user_id, user_email, user_name, admin_seen"),
+    supabaseClient.from("chance_forms").select("user_id, user_email, user_name, admin_seen"),
+    supabaseClient.from("game123_forms").select("user_id, user_email, user_name, admin_seen")
+  ]);
+
+  const all = [
+    ...(lottoResult.data || []),
+    ...(chanceResult.data || []),
+    ...(game123Result.data || [])
+  ];
+
+  const usersMap = new Map();
+
+  all.forEach(row => {
+    if (!row.user_id) return;
+
+    if (!usersMap.has(row.user_id)) {
+      usersMap.set(row.user_id, {
+        id: row.user_id,
+        name: row.user_name || "",
+        email: row.user_email || "",
+        hasUnread: false
+      });
+    }
+
+    if (row.admin_seen === false) {
+      usersMap.get(row.user_id).hasUnread = true;
+    }
+  });
+
+  const users = [...usersMap.values()];
+
+  if (users.length === 0) {
+    document.getElementById("adminUsersList").innerHTML = "אין משתמשים להצגה";
+    return;
+  }
+
+  document.getElementById("adminUsersList").innerHTML = users.map(user => {
+    const label = user.name || user.email || user.id;
+
+    return `
+      <button onclick="loadAdminUserForms('${user.id}')" style="
+        width:100%;
+        margin:6px 0;
+        padding:10px;
+        border-radius:10px;
+        border:1px solid #ddd;
+        background:${user.hasUnread ? '#fef3c7' : '#e5e7eb'};
+      ">
+        <div style="font-weight:bold;">${user.hasUnread ? '🟠 ' : ''}${label}</div>
+        <div style="font-size:12px; color:#777;">${user.email}</div>
+      </button>
+    `;
+  }).join("");
+}
+
+async function loadAdminUserForms(userId) {
+  closeAdminPanel();
+
+  const [lottoResult, chanceResult, game123Result] = await Promise.all([
+    supabaseClient.from("lotto_forms").select("*").eq("user_id", userId),
+    supabaseClient.from("chance_forms").select("*").eq("user_id", userId),
+    supabaseClient.from("game123_forms").select("*").eq("user_id", userId)
+  ]);
+
+  if (isAdmin) {
+    const [seenLotto, seenChance, seen123] = await Promise.all([
+      supabaseClient.from("lotto_forms").update({ admin_seen: true }).eq("user_id", userId),
+      supabaseClient.from("chance_forms").update({ admin_seen: true }).eq("user_id", userId),
+      supabaseClient.from("game123_forms").update({ admin_seen: true }).eq("user_id", userId)
+    ]);
+
+    console.log("seen update:", seenLotto.error, seenChance.error, seen123.error);
+    await loadAdminUsers();
+  }
+
+  const lottoForms = (lottoResult.data || []).map(row => ({
+    id: row.id,
+    tableName: "lotto_forms",
+    game: "lotto",
+    gameLabel: "לוטו",
+    gameEmoji: "🎱",
+    gameColor: "#c0392b",
+    status: row.status || "pending",
+    created_at: row.created_at,
+    form_data: {
+      numbers: row.numbers,
+      strong: row.strong
+    }
+  }));
+
+  const chanceForms = (chanceResult.data || []).map(row => ({
+    id: row.id,
+    tableName: "chance_forms",
+    game: "chance",
+    gameLabel: "צ'אנס",
+    gameEmoji: "🃏",
+    gameColor: "#16a34a",
+    status: row.status || "pending",
+    created_at: row.created_at,
+    form_data: {
+      selections: row.selections
+    }
+  }));
+
+  const game123Forms = (game123Result.data || []).map(row => ({
+    id: row.id,
+    tableName: "game123_forms",
+    game: "123",
+    gameLabel: "123",
+    gameEmoji: "🔢",
+    gameColor: "#ea580c",
+    status: row.status || "pending",
+    created_at: row.created_at,
+    form_data: {
+      digits: row.digits
+    }
+  }));
+
+  ORDERS = [...lottoForms, ...chanceForms, ...game123Forms]
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  currentFilter = "all";
+  renderList();
+}
+
+
+async function approveOrder(id, tableName) {
+  const order = ORDERS.find(o => o.id === id);
+
+  if (!tableName && order) {
+    tableName = order.tableName;
+  }
+
+  console.log("approveOrder:", { id, tableName, order });
+
+  if (!tableName) {
+    alert("חסר שם טבלה לטופס");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from(tableName)
+    .update({ status: "approved" })
+    .eq("id", id);
+
+  if (error) {
+    console.error("approve error:", error);
+    alert("שגיאה באישור הטופס");
+    return;
+  }
+
+  if (order) {
+    order.status = "approved";
+  }
+
+  closeModalDirect();
+  renderList();
+
+  alert("הטופס אושר בהצלחה");
+}
+
+function listenToMyForms(userId) {
+  supabaseClient
+    .channel("my-forms-realtime")
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "lotto_forms",
+        filter: `user_id=eq.${userId}`
+      },
+      () => loadMyForms()
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "chance_forms",
+        filter: `user_id=eq.${userId}`
+      },
+      () => loadMyForms()
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "game123_forms",
+        filter: `user_id=eq.${userId}`
+      },
+      () => loadMyForms()
+    )
+    .subscribe();
 }
 
 // Init
