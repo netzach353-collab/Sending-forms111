@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>הטפסים שלי - טופס צ'ק</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playpen+Sans+Hebrew:wght@400;700;800&family=Suez+One&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #cccccc94; font-family: 'Playpen Sans Hebrew', cursive; direction: rtl; min-height: 100vh; }
+
+    /* TOP BAR */
+    .topbar {
+      width: 100%; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px;
+      background: linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 100%);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar a { display: flex; align-items: center; gap: 8px; color: white; text-decoration: none; font-weight: bold; font-size: 14px; transition: opacity .2s; }
+    .topbar a:hover { opacity: .75; }
+    .topbar-title { color: white; font-weight: bold; font-size: 16px; }
+
+    /* MAIN */
+    .main { max-width: 480px; margin: 0 auto; padding: 24px 16px 60px; display: flex; flex-direction: column; gap: 18px; }
+
+    /* TITLE */
+    .page-title { text-align: center; font-family: 'Suez One', serif; font-size: 30px; color: #222; }
+    .page-subtitle { text-align: center; color: #777; font-size: 13px; margin-top: 4px; }
+
+    /* TABS */
+    .tabs { display: flex; background: white; border-radius: 16px; padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,.08); border: 1px solid #eee; gap: 4px; }
+    .tab-btn {
+      flex: 1; padding: 8px 4px; border-radius: 12px; border: none; background: transparent;
+      font-family: 'Playpen Sans Hebrew', cursive; font-weight: bold; font-size: 13px;
+      color: #888; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 4px;
+    }
+    .tab-btn.active { background: #1f2937; color: white; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+    .tab-count { font-size: 11px; padding: 1px 6px; border-radius: 999px; background: rgba(0,0,0,.08); }
+    .tab-btn.active .tab-count { background: rgba(255,255,255,.2); }
+
+    /* ORDER CARD */
+    .order-card {
+      background: white; border-radius: 16px; padding: 14px 16px;
+      box-shadow: 0 3px 12px rgba(0,0,0,.08);
+      display: flex; align-items: center; gap: 12px;
+      cursor: pointer; border: 2px solid transparent;
+      transition: transform .15s, box-shadow .15s;
+      width: 100%;
+    }
+    .order-card:hover { transform: scale(1.01); box-shadow: 0 6px 20px rgba(0,0,0,.12); }
+    .order-card:active { transform: scale(0.98); }
+    .order-card.pending  { border-color: #fcd34d; }
+    .order-card.approved { border-color: #86efac; }
+    .order-card.rejected { border-color: #fca5a5; }
+
+    .game-badge { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 2px 8px rgba(0,0,0,.15); flex-shrink: 0; }
+    .card-info { flex: 1; min-width: 0; }
+    .card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+    .card-game-name { font-family: 'Suez One', serif; font-size: 15px; color: #1f2937; }
+    .card-date { font-size: 11px; color: #aaa; }
+    .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-weight: bold; font-size: 12px; }
+    .status-badge .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .status-badge.pending  { background: #fffbeb; color: #b45309; } .status-badge.pending .dot  { background: #f59e0b; }
+    .status-badge.approved { background: #f0fdf4; color: #15803d; } .status-badge.approved .dot { background: #22c55e; }
+    .status-badge.rejected { background: #fef2f2; color: #b91c1c; } .status-badge.rejected .dot { background: #ef4444; }
+    .card-arrow { color: #ccc; font-size: 18px; flex-shrink: 0; }
+
+    /* EMPTY */
+    .empty { text-align: center; padding: 60px 0; }
+    .empty-icon { font-size: 52px; margin-bottom: 12px; }
+    .empty-text { font-family: 'Suez One', serif; color: #999; font-size: 16px; }
+
+    /* MODAL OVERLAY */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
+    .overlay.open { display: flex; }
+
+    /* MODAL */
+    .modal {
+      background: white; border-radius: 20px; width: 100%; max-width: 440px;
+      max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+      animation: slideUp .25s ease;
+    }
+    @keyframes slideUp { from { opacity:0; transform:translateY(30px) scale(.95); } to { opacity:1; transform:translateY(0) scale(1); } }
+
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid #f0f0f0;
+    }
+    .modal-header-right { display: flex; align-items: center; gap: 10px; }
+    .modal-game-name { font-family: 'Suez One', serif; font-size: 18px; }
+    .modal-date { font-size: 12px; color: #aaa; }
+    .close-btn { background: none; border: none; cursor: pointer; padding: 4px; border-radius: 50%; transition: background .2s; display: flex; }
+    .close-btn:hover { background: #f3f4f6; }
+
+    .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* STATUS BANNER */
+    .status-banner { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; border: 1.5px solid; }
+    .status-banner.pending  { background: #fffbeb; border-color: #fcd34d; color: #b45309; }
+    .status-banner.approved { background: #f0fdf4; border-color: #86efac; color: #15803d; }
+    .status-banner.rejected { background: #fef2f2; border-color: #fca5a5; color: #b91c1c; }
+    .status-banner .big-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .status-banner.pending  .big-dot { background: #f59e0b; animation: pulse 1.5s infinite; }
+    .status-banner.approved .big-dot { background: #22c55e; }
+    .status-banner.rejected .big-dot { background: #ef4444; }
+    .status-banner-text { font-family: 'Suez One', serif; font-size: 15px; font-weight: bold; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* FORM DETAILS BOX */
+    .details-box { background: #f9fafb; border-radius: 12px; padding: 14px 16px; }
+    .box-label { display: flex; align-items: center; gap: 6px; font-family: 'Suez One', serif; font-size: 13px; color: #777; margin-bottom: 10px; }
+    .numbers-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .num-ball { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Suez One', serif; font-weight: bold; font-size: 13px; }
+    .num-ball.regular { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+    .num-ball.strong  { background: #fbbf24; color: white; box-shadow: 0 2px 6px rgba(251,191,36,.5); }
+    .digit-ball { width: 40px; height: 40px; border-radius: 10px; background: #fff7ed; color: #ea580c; border: 1px solid #fdba74; display: flex; align-items: center; justify-content: center; font-family: 'Suez One', serif; font-size: 18px; font-weight: bold; }
+    .suit-group { display: flex; align-items: center; gap: 4px; }
+    .suit-symbol { font-size: 20px; }
+    .card-chip { padding: 3px 10px; border-radius: 8px; background: #f3f4f6; font-family: 'Suez One', serif; font-weight: bold; font-size: 13px; }
+    .label-text { font-size: 12px; color: #aaa; margin-left: 4px; }
+
+    /* NOTES */
+    .notes-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 12px 16px; font-size: 13px; color: #1d4ed8; }
+
+    /* PENDING INFO */
+    .pending-info { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px 16px; text-align: center; font-size: 13px; color: #92400e; }
+
+    /* IMAGES */
+    .images-label { display: flex; align-items: center; gap: 6px; font-family: 'Suez One', serif; font-size: 13px; color: #777; }
+    .images-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .receipt-img { width: 100%; height: 110px; object-fit: cover; border-radius: 12px; border: 1px solid #e5e7eb; cursor: pointer; transition: opacity .2s; }
+    .receipt-img:hover { opacity: .85; }
+
+    /* PAY BUTTON */
+    .pay-btn {
+      width: 100%; padding: 16px; border-radius: 16px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white; border: none; cursor: pointer;
+      font-family: 'Playpen Sans Hebrew', cursive; font-weight: bold; font-size: 17px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      box-shadow: 0 6px 20px rgba(37,99,235,.4);
+      transition: transform .15s;
+    }
+    .pay-btn:hover { transform: scale(1.02); }
+    .pay-btn:active { transform: scale(0.97); }
+
+    /* LIGHTBOX */
+    .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+    .lightbox.open { display: flex; }
+    .lightbox img { max-width: 100%; max-height: 100%; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    חזרה
+  </a>
+  <span class="topbar-title">טופס צ'ק</span>
+</div>
+
+<div class="main">
+  <div>
+    <div class="page-title">הטפסים שלי</div>
+    <div class="page-subtitle">לחץ על טופס לצפייה בפרטים ותשלום</div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" data-filter="all" onclick="setFilter('all')">הכל <span class="tab-count" id="count-all">0</span></button>
+    <button class="tab-btn" data-filter="pending" onclick="setFilter('pending')">ממתינים <span class="tab-count" id="count-pending">0</span></button>
+    <button class="tab-btn" data-filter="approved" onclick="setFilter('approved')">מאושרים <span class="tab-count" id="count-approved">0</span></button>
+    <button class="tab-btn" data-filter="rejected" onclick="setFilter('rejected')">נדחו <span class="tab-count" id="count-rejected">0</span></button>
+  </div>
+
+  <!-- LIST -->
+  <div id="ordersList"></div>
+</div>
+
+<!-- ORDER MODAL -->
+<div class="overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modalBox">
+    <div class="modal-header">
+      <button class="close-btn" onclick="closeModalDirect()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+      <div class="modal-header-right">
+        <span class="modal-game-name" id="modalGameName"></span>
+        <span class="modal-date" id="modalDate"></span>
+      </div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightboxImg" src="" alt="קבלה" />
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const SUPABASE_URL = "https://ikjgwgkucvfvujuodflf.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_Chq48eYxHD3Y-cmbK8JoxA_luOwIJ9y";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+// ─── MOCK DATA — TODO: replace with Supabase fetch ───────────────────────────
+let ORDERS = [];
+
+const STATUS_LABELS = {
+  pending:  "⏳ ממתין לאישור",
+  approved: "✓ אושר",
+  rejected: "✗ נדחה",
+};
+
+let currentFilter = "all";
+
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString("he-IL", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  renderList();
+}
+
+
+
+async function loadMyForms() {
+  const { data: userData } = await supabaseClient.auth.getUser();
+  const user = userData.user;
+
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
+
+const [lottoResult, chanceResult, game123Result] = await Promise.all([
+  supabaseClient
+    .from("lotto_forms")
+    .select("*")
+    .eq("user_id", user.id),
+
+  supabaseClient
+    .from("chance_forms")
+    .select("*")
+    .eq("user_id", user.id),
+
+  supabaseClient
+    .from("game123_forms")
+    .select("*")
+    .eq("user_id", user.id)
+]);
+
+  const lottoForms = (lottoResult.data || []).map(row => ({
+    id: row.id,
+    game: "lotto",
+    gameLabel: "לוטו",
+    gameEmoji: "🎱",
+    gameColor: "#c0392b",
+    status: row.status || "pending",
+    created_at: row.created_at,
+    form_data: {
+      numbers: row.numbers,
+      strong: row.strong
+    }
+  }));
+
+  const chanceForms = (chanceResult.data || []).map(row => ({
+    id: row.id,
+    game: "chance",
+    gameLabel: "צ'אנס",
+    gameEmoji: "🃏",
+    gameColor: "#16a34a",
+    status: row.status || "pending",
+    created_at: row.created_at,
+    form_data: {
+      selections: row.selections
+    }
+  }));
+
+  const game123Forms = (game123Result.data || []).map(row => ({
+  id: row.id,
+  game: "123",
+  gameLabel: "123",
+  gameEmoji: "🔢",
+  gameColor: "#ea580c",
+  status: row.status || "pending",
+  created_at: row.created_at,
+  form_data: {
+    digits: row.digits
+  }
+}));
+
+ORDERS = [...lottoForms, ...chanceForms, ...game123Forms]
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  renderList();
+}
+
+function renderList() {
+  const filtered = currentFilter === "all" ? ORDERS : ORDERS.filter(o => o.status === currentFilter);
+  const list = document.getElementById('ordersList');
+
+  // counts
+  ['all','pending','approved','rejected'].forEach(k => {
+    const c = k === 'all' ? ORDERS.length : ORDERS.filter(o => o.status === k).length;
+    document.getElementById('count-' + k).textContent = c;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">אין טפסים להצגה</div></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(order => `
+    <button class="order-card ${order.status}" onclick="openModal('${order.id}')" style="margin-bottom:10px;">
+      <div class="game-badge" style="background:${order.gameColor};">${order.gameEmoji}</div>
+      <div class="card-info">
+        <div class="card-top">
+          <span class="card-game-name" style="color:${order.gameColor}">${order.gameLabel}</span>
+          <span class="card-date">${formatDate(order.created_at)}</span>
+        </div>
+        <span class="status-badge ${order.status}">
+          <span class="dot"></span>
+          ${STATUS_LABELS[order.status]}
+        </span>
+      </div>
+      <span class="card-arrow">‹</span>
+    </button>
+  `).join('');
+}
+
+function buildFormDetails(order) {
+  const { game, form_data } = order;
+
+  if (game === 'lotto') {
+    const nums = form_data.numbers.map(n => `<span class="num-ball regular">${n}</span>`).join('');
+    return `
+      <div class="numbers-row" style="margin-bottom:8px;">
+        <span class="label-text">מספרים:</span>${nums}
+      </div>
+      <div class="numbers-row">
+        <span class="label-text">חזק:</span>
+        <span class="num-ball strong">${form_data.strong}</span>
+      </div>`;
+  }
+
+  if (game === 'chance') {
+    const symbolMap = { spades:'♠', hearts:'♥', diamonds:'♦', clubs:'♣' };
+    const colorMap  = { spades:'#1a1a2e', hearts:'#c0392b', diamonds:'#c0392b', clubs:'#1a1a2e' };
+    return `<div class="numbers-row">` +
+      Object.entries(form_data.selections || {}).map(([suit, cards]) =>
+        `<div class="suit-group">
+          <span class="suit-symbol" style="color:${colorMap[suit]}">${symbolMap[suit]}</span>
+          ${cards.map(c => `<span class="card-chip" style="color:${colorMap[suit]}">${c}</span>`).join('')}
+        </div>`
+      ).join('') +
+    `</div>`;
+  }
+
+  if (game === '123') {
+    return `<div class="numbers-row">
+      <span class="label-text">ספרות:</span>
+      ${form_data.digits.map(d => `<span class="digit-ball">${d}</span>`).join('')}
+    </div>`;
+  }
+
+  return `<pre style="font-size:12px;color:#999">${JSON.stringify(form_data, null, 2)}</pre>`;
+}
+
+function openModal(id) {
+  const order = ORDERS.find(o => o.id === id);
+  if (!order) return;
+
+  document.getElementById('modalGameName').textContent = order.gameLabel;
+  document.getElementById('modalGameName').style.color = order.gameColor;
+  document.getElementById('modalDate').textContent = formatDate(order.created_at);
+
+  let html = '';
+
+  // Status banner
+  html += `<div class="status-banner ${order.status}">
+    <div class="big-dot"></div>
+    <span class="status-banner-text">${STATUS_LABELS[order.status]}</span>
+  </div>`;
+
+  // Form details
+  html += `<div class="details-box">
+    <div class="box-label">📄 פרטי הטופס</div>
+    ${buildFormDetails(order)}
+  </div>`;
+
+  // Notes
+  if (order.notes) {
+    html += `<div class="notes-box">💬 ${order.notes}</div>`;
+  }
+
+  // Receipt images
+  if (order.receipt_images && order.receipt_images.length > 0) {
+    html += `<div>
+      <div class="images-label">🖼 קבלות שנשלחו ע"י המשלוחן</div>
+      <div class="images-grid">
+        ${order.receipt_images.map((url, i) =>
+          `<img class="receipt-img" src="${url}" alt="קבלה ${i+1}" onclick="openLightbox('${url}')" />`
+        ).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Pending info
+  if (order.status === 'pending') {
+    html += `<div class="pending-info">⏳ ממתין לאישור המשלוחן — תשלום יהיה זמין לאחר האישור</div>`;
+  }
+
+  // Pay button
+  if (order.status === 'approved') {
+    html += `<button class="pay-btn" onclick="handlePay('${order.id}')">
+      💳 עבור לתשלום
+    </button>`;
+  }
+
+  document.getElementById('modalBody').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function openLightbox(url) {
+  document.getElementById('lightboxImg').src = url;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+
+function handlePay(id) {
+  // TODO: חבר לטרנזילה / Tranzila כאן
+  alert('מעבר לתשלום עבור הזמנה ' + id + '\n\nחבר כאן לדף תשלום טרנזילה');
+}
+
+// Init
+loadMyForms();
+</script>
+</body>
+</html>

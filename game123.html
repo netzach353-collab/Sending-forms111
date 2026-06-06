@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>123 - טופס צ'ק</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playpen+Sans+Hebrew:wght@400;700;800&family=Suez+One&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #cccccc94; font-family: 'Playpen Sans Hebrew', cursive; direction: rtl; min-height: 100vh; }
+
+    /* TOP BAR */
+    .topbar {
+      width: 100%; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px;
+      background: linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 100%);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar a {
+      display: flex; align-items: center; gap: 8px;
+      color: white; text-decoration: none; font-weight: bold; font-size: 14px;
+      transition: opacity 0.2s;
+    }
+    .topbar a:hover { opacity: 0.75; }
+    .topbar-title { color: white; font-weight: bold; font-size: 16px; padding: 4px 12px; border-radius: 12px; }
+
+    /* MAIN */
+    .main { max-width: 480px; margin: 0 auto; padding: 24px 16px 60px; display: flex; flex-direction: column; gap: 20px; }
+
+    /* TITLE */
+    .page-title { text-align: center; font-family: 'Playpen Sans Hebrew', cursive; font-size: 56px; font-weight: 800; color: #ea580c; }
+    .page-subtitle { text-align: center; color: #666; font-size: 14px; margin-top: 4px; }
+
+    /* SELECTED DISPLAY */
+    .display-card {
+      background: white; border-radius: 16px; padding: 20px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1); border: 1px solid #e5e5e5;
+    }
+    .display-label { text-align: center; font-family: 'Suez One', serif; font-size: 13px; color: #999; margin-bottom: 12px; }
+    .display-row { display: flex; justify-content: center; gap: 16px; }
+    .display-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .display-col-label { font-family: 'Suez One', serif; font-size: 11px; color: #999; }
+    .display-ball {
+      width: 56px; height: 56px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Suez One', serif; font-size: 26px; font-weight: bold;
+      border: 2px dashed #ccc; color: #ccc; background: rgba(255,255,255,0.5);
+      transition: all 0.25s;
+    }
+    .display-ball.filled {
+      background: linear-gradient(135deg, #fb923c, #ea580c);
+      border: 2px solid #ea580c; color: white;
+      box-shadow: 0 4px 12px rgba(234,88,12,0.4);
+      border-style: solid;
+    }
+
+    /* ACTIONS */
+    .actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 24px; border-radius: 999px;
+      font-family: 'Playpen Sans Hebrew', cursive; font-weight: bold; font-size: 15px;
+      cursor: pointer; border: none; transition: transform 0.15s;
+    }
+    .btn:hover { transform: scale(1.05); }
+    .btn:active { transform: scale(0.96); }
+    .btn-auto { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; box-shadow: 0 4px 14px rgba(245,158,11,0.35); }
+    .btn-clear { background: white; color: #333; border: 2px solid #ddd; }
+
+    /* COLUMNS GRID */
+    .cols-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+    .col-card {
+      background: white; border-radius: 16px; padding: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08); border: 1px solid #e5e5e5;
+    }
+    .col-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px;
+    }
+    .col-title { font-family: 'Suez One', serif; font-size: 13px; color: #333; }
+    .col-badge {
+      font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 999px;
+      background: #f3f4f6; color: #aaa;
+    }
+    .col-badge.done { background: #fff7ed; color: #ea580c; }
+
+    .digit-btn {
+      width: 100%; padding: 8px 4px; border-radius: 10px;
+      font-family: 'Suez One', serif; font-size: 18px; font-weight: bold;
+      border: 2px solid #e5e5e5; background: white; color: #ea580c;
+      cursor: pointer; text-align: center; margin-bottom: 6px;
+      transition: all 0.15s; display: block;
+    }
+    .digit-btn:last-child { margin-bottom: 0; }
+    .digit-btn:hover { border-color: #fb923c; transform: scale(1.06); }
+    .digit-btn.selected {
+      background: linear-gradient(135deg, #fb923c, #ea580c);
+      border-color: #ea580c; color: white;
+      box-shadow: 0 3px 10px rgba(234,88,12,0.35);
+      transform: scale(0.95);
+    }
+
+    /* SUBMIT */
+    .btn-submit {
+      width: 100%; padding: 16px; border-radius: 16px;
+      font-family: 'Playpen Sans Hebrew', cursive; font-weight: bold; font-size: 18px;
+      border: none; cursor: pointer;
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: white; box-shadow: 0 6px 20px rgba(234,88,12,0.4);
+      transition: transform 0.15s, opacity 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .btn-submit:hover:not(:disabled) { transform: scale(1.02); }
+    .btn-submit:disabled { background: linear-gradient(135deg, #9ca3af, #6b7280); box-shadow: none; opacity: 0.5; cursor: not-allowed; }
+
+    /* TOAST */
+    .toast-wrap { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+    .toast { padding: 12px 24px; border-radius: 12px; font-weight: bold; font-size: 14px; color: white; box-shadow: 0 4px 16px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; white-space: nowrap; }
+    .toast-success { background: #16a34a; }
+    .toast-error   { background: #dc2626; }
+    @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+    .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-box {
+  width: 100%;
+  max-width: 360px;
+  background: white;
+  border-radius: 18px;
+  padding: 22px;
+  text-align: center;
+  box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.modal-text {
+  color: #555;
+  margin-bottom: 18px;
+  line-height: 1.6;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+#loginBtn {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+@media (max-width: 480px) {
+  #loginBtn {
+    padding: 7px 9px;
+    font-size: 11px;
+    max-width: 115px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .topbar {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .topbar-title {
+    font-size: 13px;
+  }
+
+  .topbar a {
+    font-size: 12px;
+    gap: 4px;
+  }
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: white;
+  box-shadow: 0 4px 14px rgba(22,163,74,0.4);
+}
+
+.saved-form {
+  position: relative;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 14px;
+  padding: 14px 50px 14px 14px;
+  margin-top: 10px;
+  text-align: right;
+}
+
+.saved-form-title {
+  font-weight: bold;
+  color: #9a3412;
+  margin-bottom: 8px;
+}
+
+.saved-digits {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.saved-digit {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Suez One', serif;
+  font-weight: bold;
+}
+
+.saved-delete-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.saved-delete-btn:hover {
+  background: #dc2626;
+  color: white;
+}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+    </svg>
+    חזרה
+  </a>
+  <button class="btn btn-clear" id="loginBtn" onclick="showLoginModal()">
+  התחבר עם Google
+</button>
+  <span class="topbar-title">טופס צ'ק</span>
+</div>
+
+<div class="main">
+  <!-- Title -->
+  <div>
+    <div class="page-title">123</div>
+    <div class="page-subtitle">בחר ספרה אחת (0–9) בכל עמודה</div>
+  </div>
+
+  <!-- Selected display -->
+  <div class="display-card">
+    <div class="display-label">הבחירה שלך</div>
+    <div class="display-row">
+      <div class="display-col">
+        <span class="display-col-label">עמודה א'</span>
+        <div class="display-ball" id="display-0">?</div>
+      </div>
+      <div class="display-col">
+        <span class="display-col-label">עמודה ב'</span>
+        <div class="display-ball" id="display-1">?</div>
+      </div>
+      <div class="display-col">
+        <span class="display-col-label">עמודה ג'</span>
+        <div class="display-ball" id="display-2">?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="btn btn-auto" onclick="autoFill()">✦ מילוי אוטומטי</button>
+    <button class="btn btn-clear" onclick="clearAll()">🗑 נקה הכל</button>
+     <button class="btn btn-confirm" id="confirmBtn" onclick="confirmCurrentForm()" style="display:none;">
+  ✅ אישור טופס
+</button>
+  </div>
+
+  <!-- 3 Columns -->
+  <div class="cols-grid">
+    <div class="col-card" id="col-0">
+      <div class="col-header">
+        <span class="col-badge" id="badge-0">0/1</span>
+        <span class="col-title">עמודה א'</span>
+      </div>
+      <div id="digits-0"></div>
+    </div>
+    <div class="col-card" id="col-1">
+      <div class="col-header">
+        <span class="col-badge" id="badge-1">0/1</span>
+        <span class="col-title">עמודה ב'</span>
+      </div>
+      <div id="digits-1"></div>
+    </div>
+    <div class="col-card" id="col-2">
+      <div class="col-header">
+        <span class="col-badge" id="badge-2">0/1</span>
+        <span class="col-title">עמודה ג'</span>
+      </div>
+      <div id="digits-2"></div>
+    </div>
+  </div>
+
+ <div class="display-card" id="savedFormsBox" style="display:none;">
+  <div class="display-label">הטפסים שאישרת: <span id="formsCount">0</span></div>
+  <div id="formsList"></div>
+</div>
+
+  <!-- Submit -->
+  <button class="btn-submit" id="submitBtn" onclick="submitForm()" disabled>
+    ✈ שלח טופס
+  </button>
+</div>
+
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<div class="modal-overlay" id="modalOverlay" style="display:none;">
+  <div class="modal-box" id="modalBox"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  const SUPABASE_URL = "https://ikjgwgkucvfvujuodflf.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_Chq48eYxHD3Y-cmbK8JoxA_luOwIJ9y";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+let currentUser = null;
+let isSubmitting = false;
+let savedForms = [];
+
+async function loginWithGoogle() {
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: window.location.href,
+      queryParams: {
+        prompt: "select_account"
+      }
+    }
+  });
+
+  if (error) showToast("שגיאה בהתחברות", "error");
+}
+
+async function checkUser() {
+  const { data } = await supabaseClient.auth.getUser();
+  currentUser = data.user;
+
+  updateLoginButton();
+}
+
+function updateLoginButton() {
+  const loginBtn = document.getElementById("loginBtn");
+
+  if (currentUser) {
+    loginBtn.textContent =
+      currentUser.user_metadata.full_name || currentUser.email;
+
+    loginBtn.onclick = showLogoutModal;
+    closeModal();
+  } else {
+    loginBtn.textContent = "התחבר עם Google";
+    loginBtn.onclick = showLoginModal;
+  }
+}
+
+async function logout() {
+  await supabaseClient.auth.signOut();
+
+  currentUser = null;
+  closeModal();
+  updateLoginButton();
+
+  showToast("התנתקת מהחשבון", "success");
+}
+
+
+function showLogoutModal() {
+  openModal(`
+    <div class="modal-title">יציאה מהחשבון</div>
+    <div class="modal-text">
+      אתה בטוח שאתה רוצה להתנתק?
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-auto" onclick="logout()">
+        כן, התנתק
+      </button>
+      <button class="btn btn-clear" onclick="closeModal()">
+        ביטול
+      </button>
+    </div>
+  `);
+}
+
+function requireLogin() {
+  if (!currentUser) {
+    showLoginModal();
+    return false;
+  }
+
+  return true;
+}
+
+  const selected = [null, null, null];
+
+  // Build digit buttons for all 3 columns
+  for (let col = 0; col < 3; col++) {
+    const container = document.getElementById('digits-' + col);
+    for (let d = 0; d <= 9; d++) {
+      const btn = document.createElement('button');
+      btn.className = 'digit-btn';
+      btn.id = `d-${col}-${d}`;
+      btn.textContent = d;
+      btn.onclick = () => toggleDigit(col, d);
+      container.appendChild(btn);
+    }
+  }
+
+  function toggleDigit(col, digit) {
+    if (!requireLogin()) return;
+    const prev = selected[col];
+    // Deselect previous
+    if (prev !== null) {
+      document.getElementById(`d-${col}-${prev}`).classList.remove('selected');
+    }
+    // Toggle
+    if (prev === digit) {
+      selected[col] = null;
+    } else {
+      selected[col] = digit;
+      document.getElementById(`d-${col}-${digit}`).classList.add('selected');
+    }
+    updateDisplay(col);
+    updateBadge(col);
+    updateSubmit();
+  }
+
+  function updateDisplay(col) {
+    const ball = document.getElementById('display-' + col);
+    const val = selected[col];
+    if (val !== null) {
+      ball.textContent = val;
+      ball.classList.add('filled');
+    } else {
+      ball.textContent = '?';
+      ball.classList.remove('filled');
+    }
+  }
+
+  function updateBadge(col) {
+    const badge = document.getElementById('badge-' + col);
+    if (selected[col] !== null) {
+      badge.textContent = '✓';
+      badge.classList.add('done');
+    } else {
+      badge.textContent = '0/1';
+      badge.classList.remove('done');
+    }
+  }
+
+function updateSubmit() {
+  const valid = !selected.some(v => v === null);
+
+  document.getElementById("confirmBtn").style.display = valid ? "inline-flex" : "none";
+  document.getElementById("submitBtn").disabled = savedForms.length === 0;
+}
+
+function confirmCurrentForm() {
+  if (selected.some(v => v === null)) return;
+
+  savedForms.push([...selected]);
+
+  renderSavedForms();
+  clearAll();
+
+  showToast("הטופס אושר ונשמר ברשימה", "success");
+}
+
+function renderSavedForms() {
+  document.getElementById("savedFormsBox").style.display = "block";
+  document.getElementById("formsCount").textContent = savedForms.length;
+
+  document.getElementById("formsList").innerHTML = savedForms.map((form, index) => `
+    <div class="saved-form">
+      <button class="saved-delete-btn" onclick="deleteSavedForm(${index})">×</button>
+
+      <div class="saved-form-title">
+        טופס ${index + 1}
+      </div>
+
+      <div class="saved-digits">
+        ${form.map(d => `<span class="saved-digit">${d}</span>`).join("")}
+      </div>
+    </div>
+  `).join("");
+
+  document.getElementById("submitBtn").disabled = savedForms.length === 0;
+}
+
+function deleteSavedForm(index) {
+  savedForms.splice(index, 1);
+  renderSavedForms();
+}
+
+  function autoFill() {
+    if (!requireLogin()) return;
+    for (let col = 0; col < 3; col++) {
+      const digit = Math.floor(Math.random() * 10);
+      // Clear previous selection
+      if (selected[col] !== null) {
+        document.getElementById(`d-${col}-${selected[col]}`).classList.remove('selected');
+      }
+      selected[col] = digit;
+      document.getElementById(`d-${col}-${digit}`).classList.add('selected');
+      updateDisplay(col);
+      updateBadge(col);
+    }
+    updateSubmit();
+  }
+
+  function clearAll() {
+    for (let col = 0; col < 3; col++) {
+      if (selected[col] !== null) {
+        document.getElementById(`d-${col}-${selected[col]}`).classList.remove('selected');
+        selected[col] = null;
+        updateDisplay(col);
+        updateBadge(col);
+      }
+    }
+    updateSubmit();
+  }
+
+ async function submitForm() {
+  if (isSubmitting) return;
+
+  isSubmitting = true;
+
+  const submitBtn = document.getElementById("submitBtn");
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = "⏳ שולח...";
+
+  if (savedForms.length === 0) {
+    showToast("אין טפסים לשליחה. אשר לפחות טופס אחד", "error");
+
+    isSubmitting = false;
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = "✈ שלח טופס";
+    return;
+  }
+
+  const { data } = await supabaseClient.auth.getUser();
+  currentUser = data.user;
+
+  if (!currentUser) {
+    showLoginModal();
+
+    isSubmitting = false;
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = "✈ שלח טופס";
+    return;
+  }
+
+  const rows = savedForms.map(form => ({
+    user_id: currentUser.id,
+    user_email: currentUser.email,
+    user_name: currentUser.user_metadata.full_name || currentUser.email,
+    digits: form,
+    status: "pending"
+  }));
+
+  const { error } = await supabaseClient
+    .from("game123_forms")
+    .insert(rows);
+
+  if (error) {
+    console.error(error);
+    showToast("שגיאה בשליחה לסופרבייס", "error");
+
+    isSubmitting = false;
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = "✈ שלח טופס";
+    return;
+  }
+
+  showToast("הטפסים נשלחו וממתינים לאישור!", "success");
+  submitBtn.innerHTML = "✅ נשלח";
+
+  setTimeout(() => {
+    window.location.replace("my-forms.html");
+  }, 500);
+}
+
+  function showToast(msg, type) {
+    const wrap = document.getElementById('toastWrap');
+    const el = document.createElement('div');
+    el.className = `toast toast-${type}`;
+    el.textContent = msg;
+    wrap.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+
+  function openModal(html) {
+  document.getElementById("modalBox").innerHTML = html;
+  document.getElementById("modalOverlay").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("modalOverlay").style.display = "none";
+}
+
+function showLoginModal() {
+  openModal(`
+    <div class="modal-title">נדרשת התחברות</div>
+    <div class="modal-text">
+      כדי למלא ולשלוח טופס 123, צריך להתחבר עם Google.
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-auto" onclick="loginWithGoogle()">
+        התחברות מהירה עם Google
+      </button>
+      <button class="btn btn-clear" onclick="closeModal()">
+        ביטול
+      </button>
+    </div>
+  `);
+}
+
+ document.addEventListener("DOMContentLoaded", async () => {
+  await checkUser();
+});
+
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  currentUser = session?.user || null;
+  updateLoginButton();
+});
+</script>
+</body>
+</html>
