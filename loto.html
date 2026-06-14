@@ -796,16 +796,26 @@ if (savedForms.length % 2 !== 0) {
     return;
   }
 
- const lottoOrder = {
+const gameCost = savedForms.length * 3;
+const deliveryFee = 3;
+const totalPrice = gameCost + deliveryFee;
+
+const lottoOrder = {
   user_id: currentUser.id,
   user_email: currentUser.email,
   user_name: currentUser.user_metadata.full_name || currentUser.email,
+
   tables: savedForms.map(form => ({
     numbers: form.numbers,
     strong: form.strong
   })),
+
   tables_count: savedForms.length,
-  amount: savedForms.length * 3,
+
+  game_cost: gameCost,
+  delivery_fee: deliveryFee,
+  amount: totalPrice,
+
   status: "pending"
 };
 
@@ -894,13 +904,38 @@ function renderSavedForms() {
     <div class="saved-form">
       <button class="form-delete-btn" onclick="deleteSavedForm(${index})">✕</button>
 
-      <div class="saved-form-content">
-        <strong>טופס ${index + 1}</strong><br>
-        מספרים: ${form.numbers.join(', ')}<br>
-        חזק: ${form.strong}
-      </div>
+   <div class="saved-form-content">
+  <strong>טבלה ${index + 1}</strong><br>
+
+  מספרים: ${form.numbers.join(', ')}<br>
+  חזק: ${form.strong}<br><br>
+
+  עלות טבלה: 3 ₪
+</div>
     </div>
   `).join('');
+
+  const gameCost = savedForms.length * 3;
+const deliveryFee = savedForms.length > 0 ? 3 : 0;
+const totalPrice = gameCost + deliveryFee;
+
+list.innerHTML += `
+  <div class="saved-form" style="
+    background:#ecfdf5;
+    border:2px solid #16a34a;
+    margin-top:12px;
+  ">
+    <strong>סיכום הזמנה</strong><br>
+
+    טבלאות: ${savedForms.length}<br>
+    עלות השתתפות: ${gameCost} ₪<br>
+    עמלת שילוח: ${deliveryFee} ₪<br>
+
+    <hr style="margin:8px 0">
+
+    <strong>סה״כ לתשלום: ${totalPrice} ₪</strong>
+  </div>
+`;
 }
 
 function deleteSavedForm(index) {
