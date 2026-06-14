@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -352,6 +351,36 @@
   <!-- Banner -->
   <div class="banner" id="banner" style="display:none"></div>
 
+  <div class="banner" id="priceBox" style="display:none;">
+  <div style="margin-bottom:10px;">💰 סיכום מחיר</div>
+
+  <label>סכום השתתפות:</label>
+  <select id="stakeSelect" onchange="updatePriceSummary()">
+    <option value="5">5 ₪</option>
+    <option value="10">10 ₪</option>
+    <option value="25">25 ₪</option>
+    <option value="50">50 ₪</option>
+    <option value="70">70 ₪</option>
+    <option value="100">100 ₪</option>
+    <option value="250">250 ₪</option>
+    <option value="500">500 ₪</option>
+  </select>
+
+  <br><br>
+
+  <label>מספר הגרלות:</label>
+  <select id="drawsSelect" onchange="updatePriceSummary()">
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="7">7</option>
+    <option value="10">10</option>
+    <option value="12">12</option>
+  </select>
+
+  <div id="priceSummary" style="margin-top:12px;"></div>
+</div>
   <!-- Actions -->
   <div class="actions" id="actions" style="display:none">
     <button class="btn btn-auto" onclick="autoFill()">✦ מילוי אוטומטי</button>
@@ -531,6 +560,8 @@ let currentUser = null;
 
     // Show / update UI
     document.getElementById('banner').style.display = 'block';
+    document.getElementById("priceBox").style.display = "block";
+updatePriceSummary();
     document.getElementById('banner').textContent = MODES[modeId].desc +
       (MODES[modeId].allRequired ? '' : ' — לחץ על שם הצורה לבחירה');
     document.getElementById('actions').style.display = 'flex';
@@ -655,6 +686,7 @@ let currentUser = null;
     }
     renderCards(suitId);
     updateSubmit();
+    updatePriceSummary();
   }
 
   function renderCards(suitId) {
@@ -707,14 +739,70 @@ let currentUser = null;
   document.getElementById("submitBtn").disabled = savedForms.length === 0;
 }
 
+const DELIVERY_FEE = 3;
+
+function getCombinationsCount() {
+  if (!currentMode) return 1;
+
+  const mode = MODES[currentMode];
+
+  if (!currentMode.startsWith("sys")) {
+    return 1;
+  }
+
+  return activeSuits.reduce((total, suitId) => {
+    const count = selections[suitId]?.length || 0;
+    return total * count;
+  }, 1);
+}
+
+function getChancePrice() {
+  const stake = Number(document.getElementById("stakeSelect").value);
+  const draws = Number(document.getElementById("drawsSelect").value);
+  const combinations = getCombinationsCount();
+
+  const gameCost = stake * draws * combinations;
+  const total = gameCost + DELIVERY_FEE;
+
+  return {
+    stake,
+    draws,
+    combinations,
+    delivery: DELIVERY_FEE,
+    gameCost,
+    total
+  };
+}
+
+function updatePriceSummary() {
+  const p = getChancePrice();
+
+  document.getElementById("priceSummary").innerHTML = `
+    סכום השתתפות: ${p.stake} ₪<br>
+    מספר הגרלות: ${p.draws}<br>
+    מספר צירופים: ${p.combinations}<br>
+    עלות טופס: ${p.gameCost} ₪<br>
+    שליחות: ${p.delivery} ₪<br>
+    <strong>סה״כ לתשלום: ${p.total} ₪</strong>
+  `;
+}
+
 function confirmCurrentForm() {
   if (!isValid()) return;
 
-  savedForms.push({
-    mode: currentMode,
-    modeLabel: MODES[currentMode].label,
-    selections: JSON.parse(JSON.stringify(selections))
-  });
+const price = getChancePrice();
+
+savedForms.push({
+  mode: currentMode,
+  modeLabel: MODES[currentMode].label,
+  selections: JSON.parse(JSON.stringify(selections)),
+  stake: price.stake,
+  draws: price.draws,
+  combinations: price.combinations,
+  delivery_fee: price.delivery,
+  game_cost: price.gameCost,
+  amount: price.total
+});
 
   renderSavedForms();
 
@@ -725,6 +813,7 @@ function confirmCurrentForm() {
   document.getElementById("dropdownLabel").textContent = "— בחר סוג משחק —";
   document.getElementById("dropdownLabel").style.color = "#aaa";
   document.getElementById("banner").style.display = "none";
+  document.getElementById("priceBox").style.display = "none";
   document.getElementById("actions").style.display = "none";
   document.getElementById("suitsGrid").style.display = "none";
   document.getElementById("submitBtn").style.display = "block";
@@ -760,6 +849,13 @@ function renderSavedForms() {
         <div class="saved-form-details">
           ${details}
         </div>
+
+        <div style="margin-top:10px; font-weight:bold; color:#15803d;">
+  השתתפות: ${form.game_cost} ₪<br>
+  שליחות: ${form.delivery_fee} ₪<br>
+  סה״כ לטופס: ${form.amount} ₪
+</div>
+
       </div>
     `;
   }).join("");
@@ -794,6 +890,7 @@ function deleteSavedForm(index) {
       renderCards(sid);
     });
     updateSubmit();
+    updatePriceSummary();
   }
 
   // ---- CLEAR ----
@@ -845,6 +942,12 @@ const rows = savedForms.map(form => ({
   user_name: currentUser.user_metadata.full_name || currentUser.email,
   mode: form.mode,
   selections: form.selections,
+  stake: form.stake,
+  draws: form.draws,
+  combinations: form.combinations,
+  delivery_fee: form.delivery_fee,
+  game_cost: form.game_cost,
+  amount: form.amount,
   status: "pending"
 }));
 
