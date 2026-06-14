@@ -446,11 +446,7 @@ function buildFormDetails(order) {
 
 
 function getOrderAmount(order) {
-  if (order.game === "lotto") {
-    return Number(order.amount || 0);
-  }
-
-  return 0;
+  return Number(order.amount || 0);
 }
 
 function formatPrice(amount) {
@@ -662,19 +658,25 @@ const lottoForms = (lottoResult.data || []).map(row => ({
   }
 }));
 
-  const chanceForms = (chanceResult.data || []).map(row => ({
-    id: row.id,
-    tableName: "chance_forms",
-    game: "chance",
-    gameLabel: "צ'אנס",
-    gameEmoji: "🃏",
-    gameColor: "#16a34a",
-    status: row.status || "pending",
-    created_at: row.created_at,
-    form_data: {
-      selections: row.selections
-    }
-  }));
+const chanceForms = (chanceResult.data || []).map(row => ({
+  id: row.id,
+  game: "chance",
+  gameLabel: "צ'אנס",
+  tableName: "chance_forms",
+  gameEmoji: "🃏",
+  gameColor: "#16a34a",
+  status: row.status || "pending",
+  created_at: row.created_at,
+  amount: row.amount || 0,
+  form_data: {
+    selections: row.selections,
+    stake: row.stake,
+    draws: row.draws,
+    combinations: row.combinations,
+    delivery_fee: row.delivery_fee,
+    game_cost: row.game_cost
+  }
+}));
 
   const game123Forms = (game123Result.data || []).map(row => ({
     id: row.id,
