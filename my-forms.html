@@ -390,16 +390,36 @@ function buildFormDetails(order) {
   const { game, form_data } = order;
 
   if (game === 'lotto') {
-    const nums = form_data.numbers.map(n => `<span class="num-ball regular">${n}</span>`).join('');
-    return `
-      <div class="numbers-row" style="margin-bottom:8px;">
-        <span class="label-text">מספרים:</span>${nums}
-      </div>
+  const tables = form_data.tables || [];
+
+  return `
+    <div style="display:flex; flex-direction:column; gap:10px;">
       <div class="numbers-row">
-        <span class="label-text">חזק:</span>
-        <span class="num-ball strong">${form_data.strong}</span>
-      </div>`;
-  }
+        <span class="label-text">כמות טבלאות:</span>
+        <strong>${form_data.tables_count || tables.length}</strong>
+      </div>
+
+      ${tables.map((table, index) => {
+        const nums = (table.numbers || [])
+          .map(n => `<span class="num-ball regular">${n}</span>`)
+          .join('');
+
+        return `
+          <div class="details-box" style="background:white; border:1px solid #eee;">
+            <div class="box-label">טבלה ${index + 1}</div>
+            <div class="numbers-row" style="margin-bottom:8px;">
+              <span class="label-text">מספרים:</span>${nums}
+            </div>
+            <div class="numbers-row">
+              <span class="label-text">חזק:</span>
+              <span class="num-ball strong">${table.strong}</span>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
 
   if (game === 'chance') {
     const symbolMap = { spades:'♠', hearts:'♥', diamonds:'♦', clubs:'♣' };
@@ -424,10 +444,26 @@ function buildFormDetails(order) {
   return `<pre style="font-size:12px;color:#999">${JSON.stringify(form_data, null, 2)}</pre>`;
 }
 
+
+function getOrderAmount(order) {
+  if (order.game === "lotto") {
+    return Number(order.amount || 0);
+  }
+
+  return 0;
+}
+
+function formatPrice(amount) {
+  return `₪${Number(amount).toFixed(2)}`;
+}
+
+
 function openModal(id) {
 currentOpenOrderId = id;
   const order = ORDERS.find(o => o.id === id);
   if (!order) return;
+
+  const amount = getOrderAmount(order);
 
   document.getElementById('modalGameName').textContent = order.gameLabel;
   document.getElementById('modalGameName').style.color = order.gameColor;
@@ -472,6 +508,18 @@ currentOpenOrderId = id;
     </div>`;
   }
 
+  html += `
+  <div class="details-box">
+    <div class="box-label">💰 סיכום לתשלום</div>
+    <div class="numbers-row">
+      <span class="label-text">סכום:</span>
+      <strong style="font-size:22px;color:#15803d;">
+        ${formatPrice(amount)}
+      </strong>
+    </div>
+  </div>
+`;
+
   // Pending info
   if (order.status === 'pending') {
     html += `<div class="pending-info">⏳ ממתין לאישור המשלוחן — תשלום יהיה זמין לאחר האישור</div>`;
@@ -479,9 +527,9 @@ currentOpenOrderId = id;
 
   // Pay button
   if (order.status === 'approved') {
-    html += `<button class="pay-btn" onclick="handlePay('${order.id}')">
-      💳 עבור לתשלום
-    </button>`;
+    html += `<button class="pay-btn" onclick="handlePay('${order.id}', ${amount})">
+  💳 עבור לתשלום
+</button>`;
   }
 
   document.getElementById('modalBody').innerHTML = html;
@@ -507,8 +555,8 @@ function closeLightbox() {
   document.getElementById('lightbox').classList.remove('open');
 }
 
-function handlePay(id) {
-  window.location.href = `checkout.html?order_id=${id}&amount=10.00`;
+function handlePay(id, amount) {
+  window.location.href = `checkout.html?order_id=${id}&amount=${Number(amount).toFixed(2)}`;
 }
 
 function openAdminPanel() {
@@ -598,20 +646,21 @@ async function loadAdminUserForms(userId) {
     await loadAdminUsers();
   }
 
-  const lottoForms = (lottoResult.data || []).map(row => ({
-    id: row.id,
-    tableName: "lotto_forms",
-    game: "lotto",
-    gameLabel: "לוטו",
-    gameEmoji: "🎱",
-    gameColor: "#c0392b",
-    status: row.status || "pending",
-    created_at: row.created_at,
-    form_data: {
-      numbers: row.numbers,
-      strong: row.strong
-    }
-  }));
+const lottoForms = (lottoResult.data || []).map(row => ({
+  id: row.id,
+  game: "lotto",
+  gameLabel: "לוטו",
+  gameEmoji: "🎱",
+  gameColor: "#c0392b",
+  status: row.status || "pending",
+  tableName: "lotto_forms",
+  created_at: row.created_at,
+  amount: row.amount || 0,
+  form_data: {
+    tables: row.tables || [],
+    tables_count: row.tables_count || 0
+  }
+}));
 
   const chanceForms = (chanceResult.data || []).map(row => ({
     id: row.id,
