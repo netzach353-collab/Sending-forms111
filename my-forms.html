@@ -236,6 +236,7 @@ const STATUS_LABELS = {
 let currentFilter = "all";
 let isAdmin = false;
 let realtimeStarted = false;
+let currentOpenOrderId = null;
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString("he-IL", {
@@ -343,6 +344,13 @@ ORDERS = [...lottoForms, ...chanceForms, ...game123Forms]
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   renderList();
+
+if (
+  currentOpenOrderId &&
+  document.getElementById("modalOverlay").classList.contains("open")
+) {
+  openModal(currentOpenOrderId);
+}
 }
 
 function renderList() {
@@ -417,6 +425,7 @@ function buildFormDetails(order) {
 }
 
 function openModal(id) {
+currentOpenOrderId = id;
   const order = ORDERS.find(o => o.id === id);
   if (!order) return;
 
@@ -483,7 +492,9 @@ function openModal(id) {
 function closeModal(e) {
   if (e.target === document.getElementById('modalOverlay')) closeModalDirect();
 }
+
 function closeModalDirect() {
+  currentOpenOrderId = null;
   document.getElementById('modalOverlay').classList.remove('open');
   document.body.style.overflow = '';
 }
@@ -497,8 +508,7 @@ function closeLightbox() {
 }
 
 function handlePay(id) {
-  // TODO: חבר לטרנזילה / Tranzila כאן
-  alert('מעבר לתשלום עבור הזמנה ' + id + '\n\nחבר כאן לדף תשלום טרנזילה');
+  window.location.href = `checkout.html?order_id=${id}&amount=10.00`;
 }
 
 function openAdminPanel() {
