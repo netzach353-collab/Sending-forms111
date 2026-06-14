@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -758,6 +757,33 @@ async function submitForm() {
     return;
   }
 
+  if (savedForms.length < 2) {
+  showToast("בלוטו חייבים לשלוח לפחות 2 טבלאות", "error");
+
+  isSubmitting = false;
+  submitBtn.disabled = false;
+  submitBtn.innerHTML = "שלח טופס";
+  return;
+}
+
+if (savedForms.length > 14) {
+  showToast("בלוטו אפשר לשלוח עד 14 טבלאות בלבד", "error");
+
+  isSubmitting = false;
+  submitBtn.disabled = false;
+  submitBtn.innerHTML = "שלח טופס";
+  return;
+}
+
+if (savedForms.length % 2 !== 0) {
+  showToast("בלוטו חייבים לשלוח מספר זוגי של טבלאות", "error");
+
+  isSubmitting = false;
+  submitBtn.disabled = false;
+  submitBtn.innerHTML = "שלח טופס";
+  return;
+}
+
   const { data } = await supabaseClient.auth.getUser();
   currentUser = data.user;
 
@@ -770,18 +796,22 @@ async function submitForm() {
     return;
   }
 
-  const rows = savedForms.map(form => ({
-    user_id: currentUser.id,
-    user_email: currentUser.email,
-    user_name: currentUser.user_metadata.full_name || currentUser.email,
+ const lottoOrder = {
+  user_id: currentUser.id,
+  user_email: currentUser.email,
+  user_name: currentUser.user_metadata.full_name || currentUser.email,
+  tables: savedForms.map(form => ({
     numbers: form.numbers,
-    strong: form.strong,
-    status: "pending"
-  }));
+    strong: form.strong
+  })),
+  tables_count: savedForms.length,
+  amount: savedForms.length * 3,
+  status: "pending"
+};
 
-  const { error } = await supabaseClient
-    .from("lotto_forms")
-    .insert(rows);
+const { error } = await supabaseClient
+  .from("lotto_forms")
+  .insert(lottoOrder);
 
   if (error) {
     console.error(error);
