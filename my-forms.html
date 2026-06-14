@@ -298,19 +298,24 @@ const [lottoResult, chanceResult, game123Result] = await Promise.all([
 ]);
 
   const lottoForms = (lottoResult.data || []).map(row => ({
-    id: row.id,
-    game: "lotto",
-    gameLabel: "לוטו",
-    gameEmoji: "🎱",
-    gameColor: "#c0392b",
-    status: row.status || "pending",
-    tableName: "lotto_forms",
-    created_at: row.created_at,
-    form_data: {
-      numbers: row.numbers,
-      strong: row.strong
-    }
-  }));
+  id: row.id,
+  game: "lotto",
+  gameLabel: "לוטו",
+  gameEmoji: "🎱",
+  gameColor: "#c0392b",
+  status: row.status || "pending",
+  tableName: "lotto_forms",
+  created_at: row.created_at,
+
+  amount: row.amount || 0,
+  game_cost: row.game_cost || 0,
+  delivery_fee: row.delivery_fee || 0,
+
+  form_data: {
+    tables: row.tables || [],
+    tables_count: row.tables_count || 0
+  }
+}));
 
   const chanceForms = (chanceResult.data || []).map(row => ({
     id: row.id,
