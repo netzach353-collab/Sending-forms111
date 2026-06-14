@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>תשלום - טופס צ'ק</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playpen+Sans+Hebrew:wght@400;700;800&family=Suez+One&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- PayPal Checkout -->
+  <script src="https://www.paypal.com/sdk/js?client-id=AShimCEIc6wnrsHq1dAvy&currency=ILS&intent=capture&components=buttons"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: #cccccc94;
+      font-family: "Playpen Sans Hebrew", cursive;
+      direction: rtl;
+      color: #222;
+    }
+
+    .topbar {
+      width: 100%;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 100%);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .topbar a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .topbar-title {
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .main {
+      max-width: 460px;
+      margin: 0 auto;
+      padding: 28px 16px 60px;
+    }
+
+    .checkout-card {
+      background: white;
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 8px 28px rgba(0,0,0,.12);
+      border: 1px solid #eee;
+    }
+
+    .title {
+      text-align: center;
+      font-family: "Suez One", serif;
+      font-size: 30px;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #777;
+      font-size: 13px;
+      margin-bottom: 18px;
+    }
+
+    .summary {
+      background: #f9fafb;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 18px;
+      border: 1px solid #eee;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 0;
+      font-size: 14px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .row:last-child {
+      border-bottom: none;
+    }
+
+    .price {
+      font-family: "Suez One", serif;
+      font-size: 26px;
+      color: #15803d;
+    }
+
+    .amount-box {
+      margin: 16px 0;
+      padding: 14px;
+      border-radius: 14px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+    }
+
+    .amount-box label {
+      display: block;
+      font-size: 13px;
+      color: #1d4ed8;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .amount-box input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+
+    #paypal-button-container {
+      margin-top: 16px;
+      min-height: 48px;
+    }
+
+    .message {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .message.show { display: block; }
+    .message.success { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
+    .message.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5; }
+    .message.info { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+
+    .privacy {
+      margin-top: 14px;
+      font-size: 11px;
+      color: #777;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .manual {
+      margin-top: 18px;
+      text-align: center;
+    }
+
+    .manual a {
+      color: #2563eb;
+      font-weight: bold;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <a href="my-forms.html">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+    </svg>
+    חזרה
+  </a>
+
+  <span class="topbar-title">טופס צ'ק</span>
+</div>
+
+<main class="main">
+  <section class="checkout-card">
+    <h1 class="title">תשלום מאובטח</h1>
+    <p class="subtitle">אפשר לשלם עם PayPal או כרטיס אשראי דרך PayPal</p>
+
+    <div class="summary">
+      <div class="row">
+        <span>מספר הזמנה</span>
+        <strong id="orderIdText">---</strong>
+      </div>
+
+      <div class="row">
+        <span>סטטוס</span>
+        <strong>ממתין לתשלום</strong>
+      </div>
+
+      <div class="row">
+        <span>סוג חיוב</span>
+        <strong>חד פעמי</strong>
+      </div>
+    </div>
+
+    <!-- זמני לבדיקה: בהמשך נחשב סכום לפי הטופס מתוך Supabase -->
+    <div class="amount-box">
+      <label for="amountInput">סכום לתשלום בש"ח</label>
+      <input id="amountInput" type="number" min="1" step="0.01" value="10.00">
+    </div>
+
+    <div id="paypal-button-container"></div>
+
+    <div id="messageBox" class="message"></div>
+
+    <p class="privacy">
+      התשלום מעובד על ידי PayPal. ייתכן שיופיעו אפשרויות תשלום בכרטיס אשראי או PayPal בהתאם לזכאות ולמדינה.
+    </p>
+
+    <div class="manual">
+      <a href="my-forms.html">חזרה לטפסים שלי</a>
+    </div>
+  </section>
+</main>
+
+<script>
+const SUPABASE_URL = "https://ikjgwgkucvfvujuodflf.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_Chq48eYxHD3Y-cmbK8JoxA_luOwIJ9y";
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const params = new URLSearchParams(window.location.search);
+const orderId = params.get("order_id") || params.get("id");
+
+const orderIdText = document.getElementById("orderIdText");
+const amountInput = document.getElementById("amountInput");
+const messageBox = document.getElementById("messageBox");
+
+orderIdText.textContent = orderId || "לא התקבל";
+
+function showMessage(text, type = "info") {
+  messageBox.className = "message show " + type;
+  messageBox.textContent = text;
+}
+
+async function requireUser() {
+  const { data } = await supabaseClient.auth.getUser();
+
+  if (!data.user) {
+    showMessage("צריך להתחבר לפני תשלום. חוזר לעמוד הראשי...", "error");
+    setTimeout(() => {
+      window.location.href = "index.html";
+    }, 1800);
+    return null;
+  }
+
+  return data.user;
+}
+
+function getAmount() {
+  const amount = Number(amountInput.value);
+
+  if (!amount || amount <= 0) {
+    throw new Error("סכום לא תקין");
+  }
+
+  return amount.toFixed(2);
+}
+
+// זמני בלבד: עדכון סטטוס בשלוש הטבלאות לפי order_id.
+// בהמשך עדיף לעשות את זה דרך Supabase Edge Function/Webhook של PayPal.
+async function markOrderAsPaid(paypalOrderId) {
+  if (!orderId) return;
+
+  const { data: userData } = await supabaseClient.auth.getUser();
+  const user = userData.user;
+  if (!user) return;
+
+  const tables = ["lotto_forms", "chance_forms", "game123_forms"];
+
+  for (const table of tables) {
+    await supabaseClient
+      .from(table)
+      .update({
+        status: "paid",
+        paypal_order_id: paypalOrderId,
+        paid_at: new Date().toISOString()
+      })
+      .eq("id", orderId)
+      .eq("user_id", user.id);
+  }
+}
+
+async function initCheckout() {
+  await requireUser();
+
+  if (!orderId) {
+    showMessage("חסר מספר הזמנה בקישור. צריך להיכנס מכפתור התשלום בטפסים שלי.", "error");
+    return;
+  }
+
+  if (!window.paypal) {
+    showMessage("PayPal לא נטען. בדוק את ה־Client ID או חיבור האינטרנט.", "error");
+    return;
+  }
+
+  paypal.Buttons({
+    style: {
+      layout: "vertical",
+      color: "gold",
+      shape: "rect",
+      label: "paypal"
+    },
+
+    createOrder: function(data, actions) {
+      let amount;
+
+      try {
+        amount = getAmount();
+      } catch (err) {
+        showMessage(err.message, "error");
+        throw err;
+      }
+
+      return actions.order.create({
+        purchase_units: [{
+          description: "תשלום עבור טופס #" + orderId,
+          amount: {
+            currency_code: "ILS",
+            value: amount
+          }
+        }],
+        application_context: {
+          brand_name: "טופס צ'ק",
+          shipping_preference: "NO_SHIPPING",
+          user_action: "PAY_NOW",
+          return_url: "https://netzach353-collab.github.io/Sending-forms111/payment-success.html",
+          cancel_url: "https://netzach353-collab.github.io/Sending-forms111/my-forms.html"
+        }
+      });
+    },
+
+    onApprove: async function(data, actions) {
+      try {
+        showMessage("מאשר את התשלום...", "info");
+
+        const details = await actions.order.capture();
+
+        await markOrderAsPaid(data.orderID);
+
+        showMessage("התשלום התקבל בהצלחה! חוזר לטפסים שלי...", "success");
+
+        setTimeout(() => {
+          window.location.href = "my-forms.html";
+        }, 1800);
+
+      } catch (err) {
+        console.error(err);
+        showMessage("התשלום עבר אבל הייתה שגיאה בעדכון האתר. בדוק ב־PayPal וב־Supabase.", "error");
+      }
+    },
+
+    onCancel: function() {
+      showMessage("התשלום בוטל. אפשר לנסות שוב.", "info");
+    },
+
+    onError: function(err) {
+      console.error(err);
+      showMessage("אירעה שגיאה בתשלום. נסה שוב או בדוק את הגדרות PayPal.", "error");
+    }
+  }).render("#paypal-button-container");
+}
+
+initCheckout();
+</script>
+
+</body>
+</html>
