@@ -369,15 +369,16 @@
   <br><br>
 
   <label>מספר הגרלות:</label>
-  <select id="drawsSelect" onchange="updatePriceSummary()">
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
-    <option value="5">5</option>
-    <option value="7">7</option>
-    <option value="10">10</option>
-    <option value="12">12</option>
-  </select>
+<select id="drawsSelect" onchange="updatePriceSummary()">
+  <option value="1" selected>לא מסומן (הגרלה אחת)</option>
+  <option value="2">2 הגרלות</option>
+  <option value="3">3 הגרלות</option>
+  <option value="4">4 הגרלות</option>
+  <option value="5">5 הגרלות</option>
+  <option value="7">7 הגרלות</option>
+  <option value="10">10 הגרלות</option>
+  <option value="12">12 הגרלות</option>
+</select>
 
   <div id="priceSummary" style="margin-top:12px;"></div>
 </div>
