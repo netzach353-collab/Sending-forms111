@@ -310,26 +310,38 @@ const [lottoResult, chanceResult, game123Result] = await Promise.all([
   amount: row.amount || 0,
   game_cost: row.game_cost || 0,
   delivery_fee: row.delivery_fee || 0,
+  extra_cost: row.extra_cost || 0,
 
   form_data: {
     tables: row.tables || [],
-    tables_count: row.tables_count || 0
+    tables_count: row.tables_count || 0,
+    draws: row.draws || 1,
+    extra: row.extra || false
   }
 }));
 
   const chanceForms = (chanceResult.data || []).map(row => ({
-    id: row.id,
-    game: "chance",
-    gameLabel: "צ'אנס",
-    tableName: "chance_forms",
-    gameEmoji: "🃏",
-    gameColor: "#16a34a",
-    status: row.status || "pending",
-    created_at: row.created_at,
-    form_data: {
-      selections: row.selections
-    }
-  }));
+  id: row.id,
+  game: "chance",
+  gameLabel: "צ'אנס",
+  tableName: "chance_forms",
+  gameEmoji: "🃏",
+  gameColor: "#16a34a",
+  status: row.status || "pending",
+  created_at: row.created_at,
+
+  amount: Number(row.amount || 0),
+  game_cost: Number(row.game_cost || 0),
+  delivery_fee: Number(row.delivery_fee || 0),
+
+  form_data: {
+    forms: row.forms || [],
+    forms_count: row.forms_count || 0,
+    game_cost: Number(row.game_cost || 0),
+    delivery_fee: Number(row.delivery_fee || 0),
+    amount: Number(row.amount || 0)
+  }
+}));
 
   const game123Forms = (game123Result.data || []).map(row => ({
   id: row.id,
@@ -404,6 +416,16 @@ function buildFormDetails(order) {
         <strong>${form_data.tables_count || tables.length}</strong>
       </div>
 
+      <div class="numbers-row">
+  <span class="label-text">מספר הגרלות:</span>
+  <strong>${form_data.draws === 1 ? "הגרלה אחת הקרובה" : form_data.draws + " הגרלות"}</strong>
+</div>
+
+<div class="numbers-row">
+  <span class="label-text">אקסטרה:</span>
+  <strong>${form_data.extra ? "כן" : "לא"}</strong>
+</div>
+
       ${tables.map((table, index) => {
         const nums = (table.numbers || [])
           .map(n => `<span class="num-ball regular">${n}</span>`)
@@ -426,18 +448,80 @@ function buildFormDetails(order) {
   `;
 }
 
-  if (game === 'chance') {
-    const symbolMap = { spades:'♠', hearts:'♥', diamonds:'♦', clubs:'♣' };
-    const colorMap  = { spades:'#1a1a2e', hearts:'#c0392b', diamonds:'#c0392b', clubs:'#1a1a2e' };
-    return `<div class="numbers-row">` +
-      Object.entries(form_data.selections || {}).map(([suit, cards]) =>
-        `<div class="suit-group">
-          <span class="suit-symbol" style="color:${colorMap[suit]}">${symbolMap[suit]}</span>
-          ${cards.map(c => `<span class="card-chip" style="color:${colorMap[suit]}">${c}</span>`).join('')}
-        </div>`
-      ).join('') +
-    `</div>`;
+ if (game === 'chance') {
+  const symbolMap = { spades:'♠', hearts:'♥', diamonds:'♦', clubs:'♣' };
+  const colorMap  = { spades:'#1a1a2e', hearts:'#c0392b', diamonds:'#c0392b', clubs:'#1a1a2e' };
+
+  const forms = form_data.forms || [];
+
+  if (forms.length === 0) {
+    return `<div style="color:#999;">לא נמצאו פרטי צ׳אנס</div>`;
   }
+
+  return `
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="numbers-row">
+        <span class="label-text">מספר טפסים:</span>
+        <strong>${form_data.forms_count || forms.length}</strong>
+      </div>
+
+      ${forms.map((form, index) => {
+        const selectionsHtml = Object.entries(form.selections || {}).map(([suit, cards]) => `
+          <div class="suit-group">
+            <span class="suit-symbol" style="color:${colorMap[suit] || '#333'}">${symbolMap[suit] || ''}</span>
+            ${(cards || []).map(c => `
+              <span class="card-chip" style="color:${colorMap[suit] || '#333'}">${c}</span>
+            `).join('')}
+          </div>
+        `).join('');
+
+        return `
+          <div class="details-box" style="background:white; border:1px solid #eee;">
+            <div class="box-label">טופס ${index + 1} - ${form.modeLabel || 'צ׳אנס'}</div>
+
+            <div class="numbers-row" style="margin-bottom:8px;">
+              ${selectionsHtml}
+            </div>
+
+        <div class="numbers-row">
+  <span class="label-text">סכום השתתפות:</span>
+  <strong>${form.stake || 0} ₪</strong>
+</div>
+
+<div class="numbers-row">
+  <span class="label-text">מספר הגרלות:</span>
+  <strong>${form.draws || 1}</strong>
+</div>
+
+<div class="numbers-row">
+  <span class="label-text">עלות הטופס:</span>
+  <strong>${form.game_cost || 0} ₪</strong>
+</div>
+</div>
+        `;
+      }).join('')}
+
+      <div class="details-box" style="background:#ecfdf5; border:2px solid #16a34a;">
+        <div class="box-label">סיכום צ׳אנס</div>
+
+        <div class="numbers-row">
+          <span class="label-text">עלות כל הטפסים:</span>
+          <strong>${form_data.game_cost || 0} ₪</strong>
+        </div>
+
+        <div class="numbers-row">
+          <span class="label-text">שליחות אחת:</span>
+          <strong>${form_data.delivery_fee || 0} ₪</strong>
+        </div>
+
+        <div class="numbers-row">
+          <span class="label-text">סה״כ:</span>
+          <strong>${form_data.amount || 0} ₪</strong>
+        </div>
+      </div>
+    </div>
+  `;
+}
 
   if (game === '123') {
     return `<div class="numbers-row">
@@ -656,10 +740,17 @@ const lottoForms = (lottoResult.data || []).map(row => ({
   status: row.status || "pending",
   tableName: "lotto_forms",
   created_at: row.created_at,
+
   amount: row.amount || 0,
+  game_cost: row.game_cost || 0,
+  delivery_fee: row.delivery_fee || 0,
+  extra_cost: row.extra_cost || 0,
+
   form_data: {
     tables: row.tables || [],
-    tables_count: row.tables_count || 0
+    tables_count: row.tables_count || 0,
+    draws: row.draws || 1,
+    extra: row.extra || false
   }
 }));
 
@@ -672,14 +763,17 @@ const chanceForms = (chanceResult.data || []).map(row => ({
   gameColor: "#16a34a",
   status: row.status || "pending",
   created_at: row.created_at,
+
   amount: row.amount || 0,
+  game_cost: row.game_cost || 0,
+  delivery_fee: row.delivery_fee || 0,
+
   form_data: {
-    selections: row.selections,
-    stake: row.stake,
-    draws: row.draws,
-    combinations: row.combinations,
-    delivery_fee: row.delivery_fee,
-    game_cost: row.game_cost
+    forms: row.forms || [],
+    forms_count: row.forms_count || 0,
+    game_cost: row.game_cost || 0,
+    delivery_fee: row.delivery_fee || 0,
+    amount: row.amount || 0
   }
 }));
 
