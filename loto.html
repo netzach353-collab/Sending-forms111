@@ -278,7 +278,7 @@
     /* TOAST */
     .toast-container {
       position: fixed;
-      bottom: 24px;
+      top: 50%;
       left: 50%;
       transform: translateX(-50%);
       z-index: 9999;
@@ -434,12 +434,76 @@
   margin-bottom: 18px;
   line-height: 1.6;
 }
-
 .modal-actions {
   display: flex;
   gap: 10px;
   justify-content: center;
   flex-wrap: wrap;
+}
+  
+.modal-actions1 {
+  position: fixed;
+ left: 50%;
+ transform: translateX(-50%);
+  bottom: 60px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+font-family: sans-serif ;
+}
+  
+  .about-btn {
+    position: relative;
+    right: 0px;
+    top: 0px;
+  padding: 8px 12px;
+  white-space: nowrap;
+  background: #ffffff;
+  box-shadow: none;
+  border: none;
+  font-size: 14px !important;
+}
+
+.modal-overlay {
+  overflow-y: auto;
+}
+
+.modal-box {
+  max-height: 85vh;
+  overflow-y: auto;
+  text-align: right;
+}
+
+.modal-text p {
+  margin-bottom: 14px;
+}
+
+@media (max-width: 480px) {
+  .about-btn {
+    padding: 7px 9px;
+    font-size: 11px;
+    gap: 4px;
+  }
+
+  .modal-overlay {
+    align-items: flex-start;
+    padding: 14px;
+  }
+
+  .modal-box {
+    margin-top: 20px;
+    max-height: 82vh;
+    width: 100%;
+  }
+}
+  .btn123 {
+    background: black;
+    color: white;
+  }
+.modal-text1 {
+  font-family: Arial, sans-serif;
+  margin-bottom: 50px;
 }
   </style>
 </head>
@@ -453,6 +517,7 @@
   </a>
 
 
+    
   <button class="btn btn-clear" id="loginBtn" onclick="loginWithGoogle()">
     התחבר עם Google
   </button>
@@ -460,9 +525,15 @@
     <span class="topbar-title">טופס צ'ק</span>
 
 </div>
+
 <!-- MAIN -->
 <div class="main">
-
+  <div class="about-btn-div1">
+<button class="btn btn-clear about-btn" onclick="showAboutModal()">
+  ℹ️ <span>אודות</span>
+</button>
+</diV>
+  
   <!-- Title -->
   <div>
     <div class="page-title">לוטו</div>
@@ -499,6 +570,32 @@
     <div class="number-grid" id="regularGrid"></div>
   </div>
 
+  <div class="card">
+  <div class="card-header">
+    <span class="card-title">אפשרויות השתתפות</span>
+  </div>
+
+  <label style="display:block; margin-bottom:10px; font-weight:bold;">
+    מספר הגרלות:
+  </label>
+
+  <select id="drawsSelect" onchange="renderSavedForms()" style="width:100%; padding:12px; border-radius:12px; border:1px solid #ddd; font-family:inherit;">
+    <option value="1" selected>הגרלה אחת הקרובה</option>
+    <option value="2">2 הגרלות</option>
+    <option value="3">3 הגרלות</option>
+    <option value="4">4 הגרלות</option>
+    <option value="5">5 הגרלות</option>
+    <option value="7">7 הגרלות</option>
+    <option value="10">10 הגרלות</option>
+    <option value="12">12 הגרלות</option>
+  </select>
+
+  <label style="display:flex; align-items:center; gap:8px; margin-top:14px; font-weight:bold;">
+    <input type="checkbox" id="extraCheck" onchange="renderSavedForms()">
+    הוסף אקסטרה
+  </label>
+</div>
+  
   <!-- Strong number -->
   <div class="card">
     <div class="card-header">
@@ -738,6 +835,30 @@ function autoFill() {
     render();
   }
 
+
+  function getLottoPriceSummary() {
+  const tablesCount = savedForms.length;
+  const draws = Number(document.getElementById("drawsSelect").value || 1);
+  const extra = document.getElementById("extraCheck").checked;
+
+  const tablePrice = 3;
+  const extraPricePerDraw = 6;
+  const deliveryFee = tablesCount > 0 ? 3 : 0;
+
+  const gameCost = tablesCount * tablePrice * draws;
+  const extraCost = extra ? extraPricePerDraw * draws : 0;
+  const totalPrice = gameCost + extraCost + deliveryFee;
+
+  return {
+    tablesCount,
+    draws,
+    extra,
+    gameCost,
+    extraCost,
+    deliveryFee,
+    totalPrice
+  };
+}
   // ----- SUBMIT -----
 async function submitForm() {
   if (isSubmitting) return;
@@ -796,9 +917,7 @@ if (savedForms.length % 2 !== 0) {
     return;
   }
 
-const gameCost = savedForms.length * 3;
-const deliveryFee = 3;
-const totalPrice = gameCost + deliveryFee;
+const price = getLottoPriceSummary();
 
 const lottoOrder = {
   user_id: currentUser.id,
@@ -810,13 +929,17 @@ const lottoOrder = {
     strong: form.strong
   })),
 
-  tables_count: savedForms.length,
+ tables_count: savedForms.length,
 
-  game_cost: gameCost,
-  delivery_fee: deliveryFee,
-  amount: totalPrice,
+draws: price.draws,
+extra: price.extra,
 
-  status: "pending"
+game_cost: price.gameCost,
+extra_cost: price.extraCost,
+delivery_fee: price.deliveryFee,
+amount: price.totalPrice,
+
+status: "pending"
 };
 
 const { error } = await supabaseClient
@@ -915,9 +1038,7 @@ function renderSavedForms() {
     </div>
   `).join('');
 
-  const gameCost = savedForms.length * 3;
-const deliveryFee = savedForms.length > 0 ? 3 : 0;
-const totalPrice = gameCost + deliveryFee;
+  const price = getLottoPriceSummary();
 
 list.innerHTML += `
   <div class="saved-form" style="
@@ -927,13 +1048,17 @@ list.innerHTML += `
   ">
     <strong>סיכום הזמנה</strong><br>
 
-    טבלאות: ${savedForms.length}<br>
-    עלות השתתפות: ${gameCost} ₪<br>
-    עמלת שילוח: ${deliveryFee} ₪<br>
+    טבלאות: ${price.tablesCount}<br>
+    מספר הגרלות: ${price.draws === 1 ? "הגרלה אחת הקרובה" : price.draws + " הגרלות"}<br>
+    אקסטרה: ${price.extra ? "כן" : "לא"}<br>
+
+    עלות טבלאות: ${price.gameCost} ₪<br>
+    עלות אקסטרה: ${price.extraCost} ₪<br>
+    עמלת שילוח: ${price.deliveryFee} ₪<br>
 
     <hr style="margin:8px 0">
 
-    <strong>סה״כ לתשלום: ${totalPrice} ₪</strong>
+    <strong>סה״כ לתשלום: ${price.totalPrice} ₪</strong>
   </div>
 `;
 }
@@ -988,6 +1113,70 @@ function showLogoutModal() {
   `);
 }
 
+  function showAboutModal() {
+  openModal(`
+       <div class="modal-actions1">
+      <button class="btn btn123 btn-clear" onclick="closeModal()">
+        סגור
+      </button>
+    </div>
+    
+    <div class="modal-title">ℹ️ אודות השירות</div>
+
+    <div class="modal-text1" style="text-align:right; line-height:1.9;">
+      בטופס זה ניתן למלא טבלאות באופן ידני או באמצעות מילוי אוטומטי.<br><br>
+
+
+<p style="font-weight: bolder;">
+חשוב להבהיר כי אנו איננו מפעילי הגרלות, איננו משווקים מטעם מפעל הפיס,
+איננו קשורים למפעל הפיס ואיננו פועלים מטעמו.
+השירות ניתן באופן עצמאי כשירות שליחויות בלבד.
+אנו פועלים אך ורק על דעת עצמנו ובאופן עצמאי לחלוטין.
+</p>
+<br>
+<p>
+בטופס זה ניתן למלא טבלאות באופן ידני או באמצעות מילוי אוטומטי.
+כל מילוי נחשב לטבלה אחת.
+</p>
+
+<p>
+בלוטו יש לשלוח מספר זוגי של טבלאות בלבד.
+ניתן לבחור את מספר ההגרלות שבהן הטופס ישתתף,
+או להשאיר את ברירת המחדל ולהשתתף בהגרלה הקרובה בלבד.
+</p>
+<p>
+עלות הטופס מחושבת בהתאם לסוג המשחק ולכמות הטבלאות או המילויים שנבחרו.
+עלות מילוי טבלה בלוטו הינה 3 ₪ לטבלה בתחנת השליחה.
+</p>
+
+<p>
+בנוסף, נגבית עמלת שירות ושליחות בסך 3 ₪ לכל טופס שנשלח באמצעות השליח.
+</p>
+
+<p>
+לאחר שהשליח יקבל את ההזמנה, ויאשר.
+תתאפשר השלמת התשלום באתר.
+לאחר ביצוע התשלום, תועלה לאתר תמונה סרוקה או מצולמת של הטופס שנשלח,
+לצורך תיעוד ובקרה.
+</p>
+
+<p>
+ניתן לסמן השתתפות באקסטרה בהתאם לבחירת המשתמש.
+</p>
+
+<p>
+השירות שלנו מספק שירות שליחויות ומילוי טפסים עבור לקוחות.
+לאחר קבלת ההזמנה, שליח מטעמנו מגיע לנקודת מכירה מורשית
+וממלא את הטפסים בהתאם לפרטים שהוזנו על ידי הלקוח.
+</p>
+
+
+    </div>
+
+    
+  `);
+}
+  
   // ----- INIT -----
 buildGrid('regularGrid', TOTAL_NUMBERS, 'regular');
 buildGrid('strongGrid', TOTAL_STRONG, 'strong');
