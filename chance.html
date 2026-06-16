@@ -303,6 +303,124 @@
   color: white;
   box-shadow: 0 4px 14px rgba(22,163,74,0.4);
 }
+
+.btn-confirm.attention {
+  animation: confirmPulse 0.8s ease-in-out infinite !important;
+  transform-origin: center;
+}
+
+@keyframes confirmPulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(0.88); }
+  100% { transform: scale(1); }
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-box {
+  width: 100%;
+  max-width: 360px;
+  background: white;
+  border-radius: 18px;
+  padding: 22px;
+  text-align: center;
+  box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.modal-text {
+  color: #555;
+  margin-bottom: 18px;
+  line-height: 1.6;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+  
+.modal-actions1 {
+  position: fixed;
+ left: 50%;
+ transform: translateX(-50%);
+  bottom: 60px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+font-family: sans-serif ;
+}
+  
+  .about-btn {
+    position: relative;
+    right: 0px;
+    top: 0px;
+  padding: 8px 12px;
+  white-space: nowrap;
+  background: #ffffff;
+  box-shadow: none;
+  border: none;
+  font-size: 14px !important;
+}
+
+
+.modal-overlay {
+  overflow-y: auto;
+}
+
+.modal-box {
+  max-height: 85vh;
+  overflow-y: auto;
+  text-align: right;
+}
+
+.modal-text p {
+  margin-bottom: 14px;
+}
+
+@media (max-width: 480px) {
+  .about-btn {
+    padding: 7px 9px;
+    font-size: 11px;
+    gap: 4px;
+  }
+
+  .modal-overlay {
+    align-items: flex-start;
+    padding: 14px;
+  }
+
+  .modal-box {
+    margin-top: 20px;
+    max-height: 82vh;
+    width: 100%;
+  }
+}
+  .btn123 {
+    background: black;
+    color: white;
+  }
+
+.modal-text1 {
+  font-family: Arial, sans-serif;
+  margin-bottom: 50px;
+}
+
   </style>
 </head>
 <body>
@@ -321,6 +439,13 @@
 </div>
 
 <div class="main">
+
+   <div class="about-btn-div1">
+<button class="btn btn-clear about-btn" onclick="showAboutModal()">
+  ℹ️ <span>אודות</span>
+</button>
+</diV>
+
   <div>
     <div class="page-title">צ'אנס</div>
     <div class="page-subtitle">בחר סוג משחק והתחל למלא</div>
@@ -339,10 +464,14 @@
       <button class="dropdown-item" onclick="selectMode('chance3')"><span>צ'אנס 3</span><span class="desc">3 עמודות, קלף אחד מכל אחת</span></button>
       <button class="dropdown-item" onclick="selectMode('chance4')"><span>צ'אנס 4</span><span class="desc">4 עמודות, קלף אחד מכל אחת</span></button>
       <div class="dropdown-group-label">שיטתי</div>
-      <button class="dropdown-item" onclick="selectMode('sys1')"><span>צ'אנס שיטתי 1</span><span class="desc">עמודה אחת, 2–4 קלפים</span></button>
-      <button class="dropdown-item" onclick="selectMode('sys2')"><span>צ'אנס שיטתי 2</span><span class="desc">2 עמודות, 2–4 קלפים מכל אחת</span></button>
-      <button class="dropdown-item" onclick="selectMode('sys3')"><span>צ'אנס שיטתי 3</span><span class="desc">3 עמודות, 2–4 קלפים מכל אחת</span></button>
-      <button class="dropdown-item" onclick="selectMode('sys4')"><span>צ'אנס שיטתי 4</span><span class="desc">4 עמודות, 2–4 קלפים מכל אחת</span></button>
+      <button class="dropdown-item" onclick="selectMode('sys1')"><span>צ'אנס שיטתי 1</span><span class="desc">עמודה אחת, 1–4 קלפים</span></button>
+      <button class="dropdown-item" onclick="selectMode('sys2')"><span>צ'אנס שיטתי 2</span><span class="desc">2 עמודות, 1–4 קלפים מכל אחת</span></button>
+      <button class="dropdown-item" onclick="selectMode('sys3')"><span>צ'אנס שיטתי 3</span><span class="desc">3 עמודות, 1–4 קלפים מכל אחת</span></button>
+      <button class="dropdown-item" onclick="selectMode('sys4')"><span>צ'אנס שיטתי 4</span><span class="desc">4 עמודות, 1–4 קלפים מכל אחת</span></button>
+      <button class="dropdown-item" onclick="selectMode('sysMulti')">
+  <span>רב צ'אנס שיטתי</span>
+  <span class="desc">4 עמודות, 1–4 קלפים, לפחות עמודה אחת עם 2+</span>
+</button>
       <div class="dropdown-group-label">מיוחד</div>
       <button class="dropdown-item" onclick="selectMode('multi')"><span>רב צ'אנס</span><span class="desc">קלף אחד מכל 4 עמודות</span></button>
     </div>
@@ -448,7 +577,6 @@ let savedForms = [];
 
 async function checkUser() {
   const { data } = await supabaseClient.auth.getSession();
-  console.log(data.session); 
   currentUser = data.session?.user || null;
 
   updateLoginButton();
@@ -524,16 +652,45 @@ let currentUser = null;
     chance2: { label:"צ'אנס 2",        suitsMax:2, cardsMin:1, cardsMax:1, desc:"בחר 2 עמודות + קלף אחד מכל אחת" },
     chance3: { label:"צ'אנס 3",        suitsMax:3, cardsMin:1, cardsMax:1, desc:"בחר 3 עמודות + קלף אחד מכל אחת" },
     chance4: { label:"צ'אנס 4",        suitsMax:4, cardsMin:1, cardsMax:1, desc:"בחר 4 עמודות + קלף אחד מכל אחת" },
-    sys1:    { label:"צ'אנס שיטתי 1",  suitsMax:1, cardsMin:2, cardsMax:4, desc:"בחר עמודה אחת + 2–4 קלפים" },
-    sys2:    { label:"צ'אנס שיטתי 2",  suitsMax:2, cardsMin:2, cardsMax:4, desc:"בחר 2 עמודות + 2–4 קלפים מכל אחת" },
-    sys3:    { label:"צ'אנס שיטתי 3",  suitsMax:3, cardsMin:2, cardsMax:4, desc:"בחר 3 עמודות + 2–4 קלפים מכל אחת" },
-    sys4:    { label:"צ'אנס שיטתי 4",  suitsMax:4, cardsMin:2, cardsMax:4, desc:"בחר 4 עמודות + 2–4 קלפים מכל אחת" },
+    sys1: { label:"צ'אנס שיטתי 1", suitsMax:1, cardsMin:1, cardsMax:4, desc:"בחר עמודה אחת + 1–4 קלפים" },
+    sys2: { label:"צ'אנס שיטתי 2", suitsMax:2, cardsMin:1, cardsMax:4, desc:"בחר 2 עמודות + 1–4 קלפים מכל אחת" },
+    sys3: { label:"צ'אנס שיטתי 3", suitsMax:3, cardsMin:1, cardsMax:4, desc:"בחר 3 עמודות + 1–4 קלפים מכל אחת" },
+    sys4: { label:"צ'אנס שיטתי 4", suitsMax:4, cardsMin:1, cardsMax:4, desc:"בחר 4 עמודות + 1–4 קלפים מכל אחת" },
+    sysMulti: {
+  label: "רב צ'אנס שיטתי",
+  suitsMax: 4,
+  cardsMin: 1,
+  cardsMax: 4,
+  desc: "בחר 1–4 קלפים בכל אחת מ־4 העמודות, כאשר לפחות בעמודה אחת 2 קלפים או יותר"
+},
     multi:   { label:"רב צ'אנס",       suitsMax:4, cardsMin:1, cardsMax:1, desc:"קלף אחד בדיוק מכל 4 עמודות", allRequired:true },
   };
 
   let currentMode = null;
   let activeSuits = [];       // which suits are toggled on
   let selections = {};        // { suitId: [cards] }
+
+
+  function updateStakeOptions() {
+  const stakeSelect = document.getElementById("stakeSelect");
+  const isSystematic = currentMode && currentMode.startsWith("sys");
+
+  stakeSelect.innerHTML = isSystematic
+    ? `
+      <option value="5">5 ₪</option>
+      <option value="10">10 ₪</option>
+    `
+    : `
+      <option value="5">5 ₪</option>
+      <option value="10">10 ₪</option>
+      <option value="25">25 ₪</option>
+      <option value="50">50 ₪</option>
+      <option value="70">70 ₪</option>
+      <option value="100">100 ₪</option>
+      <option value="250">250 ₪</option>
+      <option value="500">500 ₪</option>
+    `;
+}
 
   // ---- DROPDOWN ----
   function toggleDropdown() {
@@ -552,6 +709,7 @@ let currentUser = null;
   function selectMode(modeId) {
     if (!requireLogin()) return;
     currentMode = modeId;
+    updateStakeOptions();
     activeSuits = [];
     selections  = {};
     document.getElementById('dropdownLabel').textContent = MODES[modeId].label;
@@ -564,7 +722,7 @@ let currentUser = null;
     document.getElementById("priceBox").style.display = "block";
 updatePriceSummary();
     document.getElementById('banner').textContent = MODES[modeId].desc +
-      (MODES[modeId].allRequired ? '' : ' — לחץ על שם הצורה לבחירה');
+      (MODES[modeId].allRequired ? '' : ' — לביטול עמודה שנבחרה לחץ עליה שוב');
     document.getElementById('actions').style.display = 'flex';
     document.getElementById('suitsGrid').style.display = 'grid';
     document.getElementById('submitBtn').style.display = 'block';
@@ -727,17 +885,57 @@ updatePriceSummary();
 
   // ---- VALIDATION ----
   function isValid() {
-    if (!currentMode) return false;
-    const mode = MODES[currentMode];
-    if (activeSuits.length !== mode.suitsMax) return false;
-    return activeSuits.every(sid => (selections[sid]?.length || 0) >= mode.cardsMin);
+  if (!currentMode) return false;
+
+  const mode = MODES[currentMode];
+
+  if (activeSuits.length !== mode.suitsMax) return false;
+
+  const allHaveMin = activeSuits.every(sid =>
+    (selections[sid]?.length || 0) >= mode.cardsMin
+  );
+
+  if (!allHaveMin) return false;
+
+  if (currentMode.startsWith("sys")) {
+    const hasAtLeastOneDouble = activeSuits.some(sid =>
+      (selections[sid]?.length || 0) >= 2
+    );
+
+    if (!hasAtLeastOneDouble) return false;
   }
 
- function updateSubmit() {
-  const valid = isValid();
+  return true;
+}
 
-  document.getElementById("confirmBtn").style.display = valid ? "inline-flex" : "none";
+
+function updateSubmit() {
+  const valid = isValid();
+  const confirmBtn = document.getElementById("confirmBtn");
+
+  confirmBtn.style.display = valid ? "inline-flex" : "none";
   document.getElementById("submitBtn").disabled = savedForms.length === 0;
+
+  if (valid) {
+    confirmBtn.classList.remove("attention");
+    void confirmBtn.offsetWidth;
+    confirmBtn.classList.add("attention");
+  } else {
+    confirmBtn.classList.remove("attention");
+  }
+
+  if (currentMode && currentMode.startsWith("sys")) {
+    const hasAtLeastOneDouble = activeSuits.some(sid =>
+      (selections[sid]?.length || 0) >= 2
+    );
+
+    if (!hasAtLeastOneDouble && activeSuits.length === MODES[currentMode].suitsMax) {
+      document.getElementById("banner").textContent =
+        "בשיטתי יש לסמן 1–4 קלפים בכל סדרה, כאשר לפחות בסדרה אחת חייבים לבחור 2 קלפים או יותר";
+    } else {
+      document.getElementById("banner").textContent = MODES[currentMode].desc;
+    }
+  }
 }
 
 const DELIVERY_FEE = 3;
@@ -781,7 +979,7 @@ function updatePriceSummary() {
   document.getElementById("priceSummary").innerHTML = `
     סכום השתתפות: ${p.stake} ₪<br>
     מספר הגרלות: ${p.draws}<br>
-    מספר צירופים: ${p.combinations}<br>
+   מספר ניחושים בטופס:  ${p.combinations}<br>
     עלות טופס: ${p.gameCost} ₪<br>
     שליחות: ${p.delivery} ₪<br>
     <strong>סה״כ לתשלום: ${p.total} ₪</strong>
@@ -800,9 +998,7 @@ savedForms.push({
   stake: price.stake,
   draws: price.draws,
   combinations: price.combinations,
-  delivery_fee: price.delivery,
-  game_cost: price.gameCost,
-  amount: price.total
+  game_cost: price.gameCost
 });
 
   renderSavedForms();
@@ -827,7 +1023,7 @@ function renderSavedForms() {
   document.getElementById("savedFormsBox").style.display = "block";
   document.getElementById("formsCount").textContent = savedForms.length;
 
-  document.getElementById("formsList").innerHTML = savedForms.map((form, index) => {
+  const formsHtml = savedForms.map((form, index) => {
     const details = Object.entries(form.selections)
       .map(([suitId, cards]) => {
         const suit = SUITS.find(s => s.id === suitId);
@@ -851,16 +1047,29 @@ function renderSavedForms() {
           ${details}
         </div>
 
-        <div style="margin-top:10px; font-weight:bold; color:#15803d;">
-  השתתפות: ${form.game_cost} ₪<br>
-  שליחות: ${form.delivery_fee} ₪<br>
-  סה״כ לטופס: ${form.amount} ₪
+       <div style="margin-top:10px; color:#15803d;">
+  <div><strong>עלות טופס:</strong> ${form.game_cost} ₪</div>
+  <div><strong>מספר הגרלות:</strong> ${form.draws || 1}</div>
 </div>
-
       </div>
     `;
   }).join("");
 
+  const totalGameCost = savedForms.reduce((sum, form) => sum + Number(form.game_cost || 0), 0);
+  const deliveryFee = savedForms.length > 0 ? 3 : 0;
+  const totalAmount = totalGameCost + deliveryFee;
+
+  const summaryHtml = savedForms.length > 0 ? `
+    <div class="saved-form" style="border:2px solid #16a34a; background:#ecfdf5;">
+      <div class="saved-form-title">סיכום כללי</div>
+      מספר טפסים: ${savedForms.length}<br>
+      עלות כל הטפסים: ${totalGameCost} ₪<br>
+      שליחות אחת: ${deliveryFee} ₪<br>
+      <strong>סה״כ לתשלום: ${totalAmount} ₪</strong>
+    </div>
+  ` : "";
+
+  document.getElementById("formsList").innerHTML = formsHtml + summaryHtml;
   document.getElementById("submitBtn").disabled = savedForms.length === 0;
 }
 
@@ -907,24 +1116,21 @@ function deleteSavedForm(index) {
 
   // ---- SUBMIT ----
 async function submitForm() {
-
   if (isSubmitting) return;
 
-isSubmitting = true;
+  isSubmitting = true;
 
-const submitBtn = document.getElementById("submitBtn");
-submitBtn.disabled = true;
-submitBtn.innerHTML = "⏳ שולח...";
+  const submitBtn = document.getElementById("submitBtn");
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = "⏳ שולח...";
 
- if (savedForms.length === 0) {
-  showToast("אין טפסים לשליחה. אשר לפחות טופס אחד", "error");
-
-  isSubmitting = false;
-  submitBtn.disabled = false;
-  submitBtn.innerHTML = "✈ שלח טופס";
-
-  return;
-}
+  if (savedForms.length === 0) {
+    showToast("אין טפסים לשליחה. אשר לפחות טופס אחד", "error");
+    isSubmitting = false;
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = "✈ שלח טופס";
+    return;
+  }
 
   const { data } = await supabaseClient.auth.getUser();
   currentUser = data.user;
@@ -932,48 +1138,53 @@ submitBtn.innerHTML = "⏳ שולח...";
   if (!currentUser) {
     showLoginModal();
     isSubmitting = false;
-submitBtn.disabled = false;
-submitBtn.innerHTML = "✈ שלח טופס";
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = "✈ שלח טופס";
     return;
   }
 
-const rows = savedForms.map(form => ({
-  user_id: currentUser.id,
-  user_email: currentUser.email,
-  user_name: currentUser.user_metadata.full_name || currentUser.email,
-  mode: form.mode,
-  selections: form.selections,
-  stake: form.stake,
-  draws: form.draws,
-  combinations: form.combinations,
-  delivery_fee: form.delivery_fee,
-  game_cost: form.game_cost,
-  amount: form.amount,
-  status: "pending"
-}));
+  const totalGameCost = savedForms.reduce((sum, form) => sum + Number(form.game_cost || 0), 0);
+  const deliveryFee = 3;
+  const totalAmount = totalGameCost + deliveryFee;
 
- const { error } = await supabaseClient
-  .from("chance_forms")
-  .insert(rows);
+  const order = {
+    user_id: currentUser.id,
+    user_email: currentUser.email,
+    user_name: currentUser.user_metadata.full_name || currentUser.email,
+
+    mode: "batch",
+   selections: {},
+
+    forms: savedForms,
+    forms_count: savedForms.length,
+
+    game_cost: totalGameCost,
+    delivery_fee: deliveryFee,
+    amount: totalAmount,
+
+    status: "pending"
+  };
+
+  const { error } = await supabaseClient
+    .from("chance_forms")
+    .insert(order);
 
   if (error) {
-
     isSubmitting = false;
-submitBtn.disabled = false;
-submitBtn.innerHTML = "✈ שלח טופס";
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = "✈ שלח טופס";
 
-    console.error(error);
-    showToast('שגיאה בשליחה לסופרבייס', 'error');
+
+    showToast("שגיאה בשליחה לסופרבייס", "error");
     return;
   }
 
-showToast('הטפסים נשלחו וממתינים לאישור!', 'success');
+  showToast("הטפסים נשלחו וממתינים לאישור!", "success");
+  submitBtn.innerHTML = "✅ נשלח";
 
-submitBtn.innerHTML = "✅ נשלח";
-
-setTimeout(() => {
-  window.location.replace("my-forms.html");
-}, 500);
+  setTimeout(() => {
+    window.location.replace("my-forms.html");
+  }, 500);
 }
 
   // ---- TOAST ----
@@ -1005,6 +1216,88 @@ function updateLoginButton() {
     loginBtn.textContent = 'התחבר עם Google';
     loginBtn.onclick = showLoginModal;
   }
+}
+
+function showAboutModal() {
+  openModal(`
+       <div class="modal-actions1">
+      <button class="btn btn123 btn-clear" onclick="closeModal()">
+        סגור
+      </button>
+    </div>
+    
+    <div class="modal-title">ℹ️ אודות השירות</div>
+
+    <div class="modal-text1" style="text-align:right; line-height:1.9;">
+      בטופס זה ניתן למלא טבלאות באופן ידני או באמצעות מילוי אוטומטי.<br><br>
+
+<p style="font-weight: bolder;">
+חשוב להבהיר כי אנו איננו מפעילי הגרלות, איננו משווקים מטעם מפעל הפיס,
+איננו קשורים למפעל הפיס ואיננו פועלים מטעמו.
+השירות ניתן באופן עצמאי כשירות שליחויות בלבד.
+אנו פועלים אך ורק על דעת עצמנו ובאופן עצמאי לחלוטין.
+</p>
+
+<br>
+
+<p>
+בדף זה ניתן למלא טפסי צ'אנס במספר מסלולי משחק שונים:
+צ'אנס רגיל, צ'אנס שיטתי ורב צ'אנס.
+</p>
+
+<p>
+משחק הצ'אנס מבוסס על ארבע סדרות קלפים:
+♠ ספייד, ♥ לב, ♦ יהלום ו־♣ תלתן.
+בכל סדרה קיימים שמונה קלפים שונים,
+והמטרה היא לנחש אילו קלפים יעלו בגורל בהגרלה.
+</p>
+
+<p>
+בטופסי צ'אנס רגילים ניתן לבחור בין צ'אנס 1, צ'אנס 2,
+צ'אנס 3 או צ'אנס 4, בהתאם למספר הסדרות והקלפים
+אותם המשתמש מעוניין לנחש.
+</p>
+
+<p>
+בטופס רב צ'אנס יש לבחור קלף אחד מכל אחת מארבע הסדרות.
+</p>
+
+<p>
+בטופס צ'אנס שיטתי ניתן לסמן 1–4 קלפים בכל סדרה,
+כאשר לפחות בסדרה אחת יש לבחור 2 קלפים או יותר.
+כך ניתן ליצור מספר צירופים גדול יותר במסגרת טופס אחד,
+והעלות מחושבת לפי מספר הצירופים שנוצרו בפועל.
+</p>
+
+<p>
+ניתן לבחור את סכום ההשתתפות הרצוי לכל טופס,
+וכן את מספר ההגרלות בהן הטופס ישתתף.
+עלות הטופס מחושבת בהתאם לסוג המשחק,
+סכום ההשתתפות, מספר ההגרלות ומספר הצירופים שנבחרו.
+</p>
+
+<p>
+בנוסף, נגבית עמלת שירות ושליחות בסך 3 ₪
+לכל הזמנה הנשלחת באמצעות השירות.
+</p>
+
+<p>
+לאחר שהשליח יקבל את ההזמנה ויאשר אותה,
+תתאפשר השלמת התשלום באתר.
+לאחר ביצוע התשלום, תועלה למערכת תמונה של הטופס שנשלח,
+לצורך תיעוד ובקרה.
+</p>
+
+<p>
+השירות שלנו מספק שירות שליחויות ומילוי טפסים עבור לקוחות.
+לאחר קבלת ההזמנה, שליח מטעמנו מגיע לנקודת מכירה מורשית
+וממלא את הטפסים בהתאם לפרטים שהוזנו על ידי הלקוח.
+</p>
+
+    </div>
+
+    
+  `);
 }
 </script>
 </body>
