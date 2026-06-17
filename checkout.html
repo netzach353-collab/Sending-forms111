@@ -11,8 +11,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- PayPal Checkout -->
-  <script src="https://www.paypal.com/sdk/js?client-id=AShimCEIc6wnrsHq1dAvy&currency=ILS&intent=capture&components=buttons"></script>
-
+<script src="https://www.paypal.com/sdk/js?client-id=AYZpYGX7aSmYzn5UEh2P39CrBeVlcI80X6JE08M4Zg5FMc8pEutEhkMiPa-JA6PW60lLPfN1edvsnC8i&currency=ILS&intent=capture&components=buttons"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -35,7 +34,7 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       position: sticky;
       top: 0;
-      z-index: 50;
+      z-index: 999;
     }
 
     .topbar a {
@@ -278,29 +277,6 @@ function getAmount() {
   return amount.toFixed(2);
 }
 
-// זמני בלבד: עדכון סטטוס בשלוש הטבלאות לפי order_id.
-// בהמשך עדיף לעשות את זה דרך Supabase Edge Function/Webhook של PayPal.
-async function markOrderAsPaid(paypalOrderId) {
-  if (!orderId) return;
-
-  const { data: userData } = await supabaseClient.auth.getUser();
-  const user = userData.user;
-  if (!user) return;
-
-  const tables = ["lotto_forms", "chance_forms", "game123_forms"];
-
-  for (const table of tables) {
-    await supabaseClient
-      .from(table)
-      .update({
-        status: "paid",
-        paypal_order_id: paypalOrderId,
-        paid_at: new Date().toISOString()
-      })
-      .eq("id", orderId)
-      .eq("user_id", user.id);
-  }
-}
 
 async function initCheckout() {
   await requireUser();
@@ -323,41 +299,56 @@ async function initCheckout() {
       label: "paypal"
     },
 
-    createOrder: function(data, actions) {
-      let amount;
-
+    createOrder: async function() {
       try {
-        amount = getAmount();
+        const amount = getAmount();
+
+        const { data, error } = await supabaseClient.functions.invoke("create-paypal-order", {
+          body: {
+            amount: amount,
+            order_id: orderId
+          }
+        });
+
+        if (error) {
+          console.error("create order error:", error);
+          throw new Error("שגיאה ביצירת הזמנת PayPal");
+        }
+
+        if (!data || !data.id) {
+          console.error("missing paypal order id:", data);
+          throw new Error("PayPal לא החזיר מספר הזמנה");
+        }
+
+        return data.id;
+
       } catch (err) {
-        showMessage(err.message, "error");
+        console.error(err);
+        showMessage(err.message || "שגיאה ביצירת תשלום", "error");
         throw err;
       }
-
-      return actions.order.create({
-        purchase_units: [{
-          description: "תשלום עבור טופס #" + orderId,
-          amount: {
-            currency_code: "ILS",
-            value: amount
-          }
-        }],
-        application_context: {
-          brand_name: "טופס צ'ק",
-          shipping_preference: "NO_SHIPPING",
-          user_action: "PAY_NOW",
-          return_url: "https://netzach353-collab.github.io/Sending-forms111/payment-success.html",
-          cancel_url: "https://netzach353-collab.github.io/Sending-forms111/my-forms.html"
-        }
-      });
     },
 
-    onApprove: async function(data, actions) {
+    onApprove: async function(data) {
       try {
         showMessage("מאשר את התשלום...", "info");
 
-        const details = await actions.order.capture();
+        const { data: captureData, error } = await supabaseClient.functions.invoke("capture-paypal-order", {
+          body: {
+            paypal_order_id: data.orderID,
+            order_id: orderId
+          }
+        });
 
-        await markOrderAsPaid(data.orderID);
+        if (error) {
+          console.error("capture function error:", error);
+          throw new Error("התשלום עבר אבל הייתה שגיאה בעדכון האתר");
+        }
+
+        if (!captureData || !captureData.success) {
+          console.error("capture data error:", captureData);
+          throw new Error(captureData?.error || "שגיאה באישור התשלום");
+        }
 
         showMessage("התשלום התקבל בהצלחה! חוזר לטפסים שלי...", "success");
 
@@ -367,7 +358,7 @@ async function initCheckout() {
 
       } catch (err) {
         console.error(err);
-        showMessage("התשלום עבר אבל הייתה שגיאה בעדכון האתר. בדוק ב־PayPal וב־Supabase.", "error");
+        showMessage(err.message || "שגיאה באישור התשלום", "error");
       }
     },
 
