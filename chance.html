@@ -46,6 +46,7 @@
       box-shadow: 0 8px 32px rgba(0,0,0,0.15); border: 1px solid #e5e5e5;
       z-index: 100; overflow: hidden;
       display: none;
+     padding-bottom: 15px;
     }
     .dropdown-menu.open { display: block; }
     .dropdown-group-label {
@@ -67,7 +68,7 @@
     /* BANNER */
     .banner {
       background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px;
-      padding: 12px 16px; text-align: center; font-size: 14px; color: #166534; font-weight: bold;
+      padding: 12px 16px; text-align: center; font-size: 20px; color: #166534; font-weight: bold;
     }
 
     /* ACTIONS */
@@ -281,14 +282,17 @@
 .saved-delete-btn {
   position: absolute;
   top: 10px;
-  right: 10px;
-  width: 30px;
-  height: 30px;
+  left: 10px;
+  width: 40px;
+  height: 40px;
   border: none;
   border-radius: 50%;
   background: #fee2e2;
   color: #dc2626;
-  font-size: 18px;
+  font-size: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-weight: bold;
   cursor: pointer;
 }
@@ -363,7 +367,6 @@
   gap: 10px;
   justify-content: center;
   flex-wrap: wrap;
-font-family: sans-serif ;
 }
   
   .about-btn {
@@ -380,13 +383,33 @@ font-family: sans-serif ;
 
 
 .modal-overlay {
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .modal-box {
-  max-height: 85vh;
-  overflow-y: auto;
+  height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   text-align: right;
+}
+
+.modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: white;
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 15px;
+}
+
+.modal-text1 {
+  overflow-y: auto;
+  flex: 1;
+  padding-bottom: 20px;
+  font-family: serif, sans-serif;
 }
 
 .modal-text p {
@@ -416,11 +439,30 @@ font-family: sans-serif ;
     color: white;
   }
 
-.modal-text1 {
-  font-family: Arial, sans-serif;
-  margin-bottom: 50px;
+
+.close-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: #020101;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
+.close-btn:hover {
+  background: #1e1e57;
+}
+
+#stakeSelect {
+  font-size: 15px;
+}
+#drawsSelect {
+  font-size: 15px;
+  
+}
   </style>
 </head>
 <body>
@@ -478,10 +520,11 @@ font-family: sans-serif ;
   </div>
 
   <!-- Banner -->
-  <div class="banner" id="banner" style="display:none"></div>
+  <!-- Banner -->
+<div class="banner" id="banner" style="display:none"></div>
 
-  <div class="banner" id="priceBox" style="display:none;">
-  <div style="margin-bottom:10px;">💰 סיכום מחיר</div>
+<div class="banner" id="priceBox" style="display:none;">
+  <div style="margin-bottom:10px;">₪ סיכום מחיר</div>
 
   <label>סכום השתתפות:</label>
   <select id="stakeSelect" onchange="updatePriceSummary()">
@@ -498,32 +541,38 @@ font-family: sans-serif ;
   <br><br>
 
   <label>מספר הגרלות:</label>
-<select id="drawsSelect" onchange="updatePriceSummary()">
-  <option value="1" selected>לא מסומן (הגרלה אחת)</option>
-  <option value="2">2 הגרלות</option>
-  <option value="3">3 הגרלות</option>
-  <option value="4">4 הגרלות</option>
-  <option value="5">5 הגרלות</option>
-  <option value="7">7 הגרלות</option>
-  <option value="10">10 הגרלות</option>
-  <option value="12">12 הגרלות</option>
-</select>
+  <select id="drawsSelect" onchange="updatePriceSummary()">
+    <option value="1" selected>לא מסומן (הגרלה אחת)</option>
+    <option value="2">2 הגרלות</option>
+    <option value="3">3 הגרלות</option>
+    <option value="4">4 הגרלות</option>
+    <option value="5">5 הגרלות</option>
+    <option value="7">7 הגרלות</option>
+    <option value="10">10 הגרלות</option>
+    <option value="12">12 הגרלות</option>
+  </select>
 
-  <div id="priceSummary" style="margin-top:12px;"></div>
+
 </div>
-  <!-- Actions -->
-  <div class="actions" id="actions" style="display:none">
-    <button class="btn btn-auto" onclick="autoFill()">✦ מילוי אוטומטי</button>
-    <button class="btn btn-clear" onclick="clearAll()">🗑 נקה הכל</button>
-    <button class="btn btn-confirm" id="confirmBtn" onclick="confirmCurrentForm()" style="display:none;">
-  ✅ אישור טופס
-</button>
-  </div>
 
-  <!-- Suits -->
-  <div class="suits-grid" id="suitsGrid" style="display:none">
-    <!-- built by JS -->
-  </div>
+<!-- Actions -->
+<div class="actions" id="actions" style="display:none">
+  <button class="btn btn-auto" onclick="autoFill()">✦ מילוי אוטומטי</button>
+  <button class="btn btn-clear" onclick="clearAll()">🗑 נקה הכל</button>
+  <button class="btn btn-confirm" id="confirmBtn" onclick="confirmCurrentForm()" style="display:none;">
+    ✅ אישור טופס
+  </button>
+</div>
+
+<!-- Suits -->
+<div class="suits-grid" id="suitsGrid" style="display:none">
+  <!-- built by JS -->
+</div>
+
+  <div class="banner" id="priceSummaryBox" style="display:none;">
+  <div style="margin-bottom:10px;">₪ סיכום הטופס</div>
+  <div id="priceSummary"></div>
+</div>
 
 <div class="banner" id="savedFormsBox" style="display:none;">
   <div><strong>הטפסים שאישרת</strong> <span id="formsCount">0</span></div>
@@ -720,7 +769,9 @@ let currentUser = null;
     // Show / update UI
     document.getElementById('banner').style.display = 'block';
     document.getElementById("priceBox").style.display = "block";
-updatePriceSummary();
+    document.getElementById("priceSummaryBox").style.display = "block";
+    document.getElementById("priceSummary").innerHTML =
+     "בחר את הקלפים הנדרשים, וסיכום הטופס יוצג כאן לפני האישור.";
     document.getElementById('banner').textContent = MODES[modeId].desc +
       (MODES[modeId].allRequired ? '' : ' — לביטול עמודה שנבחרה לחץ עליה שוב');
     document.getElementById('actions').style.display = 'flex';
@@ -809,6 +860,7 @@ updatePriceSummary();
     }
     renderCards(suitId);
     updateSubmit();
+    updatePriceSummary();
   }
 
   function updateSuitUI(suitId, active) {
@@ -974,12 +1026,18 @@ function getChancePrice() {
 }
 
 function updatePriceSummary() {
+  if (!isValid()) {
+    document.getElementById("priceSummary").innerHTML =
+      "בחר את הקלפים הנדרשים, וסיכום הטופס יוצג כאן לפני האישור.";
+    return;
+  }
+
   const p = getChancePrice();
 
   document.getElementById("priceSummary").innerHTML = `
     סכום השתתפות: ${p.stake} ₪<br>
     מספר הגרלות: ${p.draws}<br>
-   מספר ניחושים בטופס:  ${p.combinations}<br>
+    מספר ניחושים בטופס: ${p.combinations}<br>
     עלות טופס: ${p.gameCost} ₪<br>
     שליחות: ${p.delivery} ₪<br>
     <strong>סה״כ לתשלום: ${p.total} ₪</strong>
@@ -1003,6 +1061,12 @@ savedForms.push({
 
   renderSavedForms();
 
+document.getElementById("drawsSelect").value = "1";
+document.getElementById("stakeSelect").value = "5";
+updatePriceSummary();
+
+document.getElementById("priceSummary").innerHTML = "";
+
   currentMode = null;
   activeSuits = [];
   selections = {};
@@ -1011,6 +1075,7 @@ savedForms.push({
   document.getElementById("dropdownLabel").style.color = "#aaa";
   document.getElementById("banner").style.display = "none";
   document.getElementById("priceBox").style.display = "none";
+  document.getElementById("priceSummaryBox").style.display = "none";
   document.getElementById("actions").style.display = "none";
   document.getElementById("suitsGrid").style.display = "none";
   document.getElementById("submitBtn").style.display = "block";
@@ -1220,18 +1285,18 @@ function updateLoginButton() {
 
 function showAboutModal() {
   openModal(`
-       <div class="modal-actions1">
-      <button class="btn btn123 btn-clear" onclick="closeModal()">
-        סגור
-      </button>
-    </div>
-    
-    <div class="modal-title">ℹ️ אודות השירות</div>
+             <div class="modal-header">
+  <button class="close-btn" onclick="closeModal()">
+    ✕
+  </button>
+
+  <div class="modal-title">ℹ️ אודות השירות</div>
+</div>
 
     <div class="modal-text1" style="text-align:right; line-height:1.9;">
       בטופס זה ניתן למלא טבלאות באופן ידני או באמצעות מילוי אוטומטי.<br><br>
 
-<p style="font-weight: bolder;">
+<p style="font-weight: bolder; color: rgb(207, 64, 64);">
 חשוב להבהיר כי אנו איננו מפעילי הגרלות, איננו משווקים מטעם מפעל הפיס,
 איננו קשורים למפעל הפיס ואיננו פועלים מטעמו.
 השירות ניתן באופן עצמאי כשירות שליחויות בלבד.
