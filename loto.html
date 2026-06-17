@@ -505,6 +505,32 @@ font-family: sans-serif ;
   font-family: Arial, sans-serif;
   margin-bottom: 50px;
 }
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 12px;
+}
+
+.close-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #555;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  background: #e5e7eb;
+}
   </style>
 </head>
 <body>
@@ -1115,13 +1141,15 @@ function showLogoutModal() {
 
   function showAboutModal() {
   openModal(`
-       <div class="modal-actions1">
-      <button class="btn btn123 btn-clear" onclick="closeModal()">
-        סגור
-      </button>
-    </div>
-    
-    <div class="modal-title">ℹ️ אודות השירות</div>
+      <div class="modal-header">
+  <button class="close-btn" onclick="closeModal()">
+    ✕
+  </button>
+
+  <div class="modal-title">ℹ️ אודות השירות</div>
+</div>
+
+<div class="modal-text1" style="text-align:right; line-height:1.9;"></div>
 
     <div class="modal-text1" style="text-align:right; line-height:1.9;">
       בטופס זה ניתן למלא טבלאות באופן ידני או באמצעות מילוי אוטומטי.<br><br>
