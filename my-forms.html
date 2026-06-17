@@ -152,6 +152,78 @@
     .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
     .lightbox.open { display: flex; }
     .lightbox img { max-width: 100%; max-height: 100%; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+
+
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.quick-action-btn {
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  padding: 10px 6px;
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+.quick-action-btn:hover {
+  transform: scale(1.03);
+}
+
+
+#adminBtn{
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-weight: bold;
+  cursor: pointer;
+  transition: .2s;
+  box-shadow: 0 2px 8px rgba(37,99,235,.3);
+}
+
+#adminBtn:hover{
+  transform: scale(1.05);
+}
+
+#adminBtn:active{
+  transform: scale(.97);
+}
+
+.admin-close-btn{
+  width: 30%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #ef4444;
+  color: white;
+  font-family: inherit;
+  font-weight: bold;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.admin-close-btn:hover{
+  transform: scale(1.02);
+}
+
+.admin-close-btn:active{
+  transform: scale(.98);
+}
   </style>
 </head>
 <body>
@@ -161,13 +233,57 @@
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
     חזרה
   </a>
+  
   <span class="topbar-title">טופס צ'ק</span>
+  
+
+
   <button id="adminBtn" onclick="openAdminPanel()" style="display:none;">
   ניהול
 </button>
+
 </div>
 
 <div class="main">
+
+<div class="quick-actions-grid">
+  <button class="quick-action-btn" onclick="showAboutModal()">
+    ℹ️
+    <span>אודות</span>
+  </button>
+
+<button class="quick-action-btn"
+        onclick="window.location.href='forum-standalone.html'">
+          <svg xmlns="http://www.w3.org/2000/svg"
+       width="26" height="26"
+       viewBox="0 0 24 24"
+       fill="none"
+       stroke="currentColor"
+       stroke-width="2"
+       stroke-linecap="round"
+       stroke-linejoin="round">
+
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+
+  </svg>
+
+  <span>פורום האתר</span>
+</button>
+
+<button class="quick-action-btn" onclick="showWithdrawModal()">
+  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"
+       viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 7H4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/>
+    <path d="M16 12h.01"/>
+    <path d="M6 7V5a2 2 0 0 1 2-2h9"/>
+  </svg>
+
+  <span>בקשת משיכה</span>
+</button>
+</div>
+
+
   <div>
     <div class="page-title">הטפסים שלי</div>
     <div class="page-subtitle">לחץ על טופס לצפייה בפרטים ותשלום</div>
@@ -175,10 +291,21 @@
 
   <!-- TABS -->
   <div class="tabs">
-    <button class="tab-btn active" data-filter="all" onclick="setFilter('all')">הכל <span class="tab-count" id="count-all">0</span></button>
-    <button class="tab-btn" data-filter="pending" onclick="setFilter('pending')">ממתינים <span class="tab-count" id="count-pending">0</span></button>
-    <button class="tab-btn" data-filter="approved" onclick="setFilter('approved')">מאושרים <span class="tab-count" id="count-approved">0</span></button>
-    <button class="tab-btn" data-filter="rejected" onclick="setFilter('paid')">שולמו<span class="tab-count" id="count-rejected">0</span></button>
+<button class="tab-btn active" data-filter="all" onclick="setFilter('all')">
+  הכל <span class="tab-count" id="count-all">0</span>
+</button>
+
+<button class="tab-btn" data-filter="pending" onclick="setFilter('pending')">
+  ממתינים <span class="tab-count" id="count-pending">0</span>
+</button>
+
+<button class="tab-btn" data-filter="approved" onclick="setFilter('approved')">
+  מאושרים <span class="tab-count" id="count-approved">0</span>
+</button>
+
+<button class="tab-btn" data-filter="paid" onclick="setFilter('paid')">
+  שולמו <span class="tab-count" id="count-paid">0</span>
+</button>
   </div>
 
   <!-- LIST -->
@@ -208,7 +335,9 @@
 
 
 <div id="adminPanel" style="display:none; position:fixed; top:0; right:0; width:280px; height:100vh; background:white; z-index:999; box-shadow:-4px 0 20px #0005; padding:16px; overflow:auto;">
-  <button onclick="closeAdminPanel()">סגור</button>
+<button class="admin-close-btn" onclick="closeAdminPanel()">
+  ✖ סגור
+</button>
   <h3>משתמשים</h3>
   <div id="adminUsersList"></div>
 </div>
@@ -226,11 +355,34 @@ const supabaseClient = supabase.createClient(
 
 // ─── MOCK DATA — TODO: replace with Supabase fetch ───────────────────────────
 let ORDERS = [];
+const PAGE_SIZE = 10;
+const MAX_PAGES = 5;
+let currentPage = 1;
+
+const UPLOAD_URL = "https://product-upload.netzach353.workers.dev";
+
+async function uploadImageToR2(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(UPLOAD_URL, {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || "שגיאה בהעלאת התמונה");
+  }
+
+  return data.imageUrl;
+}
 
 const STATUS_LABELS = {
   pending:  "⏳ ממתין לאישור",
   approved: "✓ אושר",
-  rejected: "✗ נדחה",
+  paid: "✅ שולם"
 };
 
 let currentFilter = "all";
@@ -247,6 +399,7 @@ function formatDate(iso) {
 
 function setFilter(f) {
   currentFilter = f;
+  currentPage = 1;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
   renderList();
 }
@@ -274,12 +427,13 @@ if (adminError) {
 }
 
 isAdmin = adminCheck === true;
+
 console.log("isAdmin:", isAdmin);
   
   if (isAdmin) {
   document.getElementById("adminBtn").style.display = "block";
 }
-
+ 
 const [lottoResult, chanceResult, game123Result] = await Promise.all([
   supabaseClient
     .from("lotto_forms")
@@ -311,6 +465,7 @@ const [lottoResult, chanceResult, game123Result] = await Promise.all([
   game_cost: row.game_cost || 0,
   delivery_fee: row.delivery_fee || 0,
   extra_cost: row.extra_cost || 0,
+  proof_images: row.proof_images || [],
 
   form_data: {
     tables: row.tables || [],
@@ -333,6 +488,7 @@ const [lottoResult, chanceResult, game123Result] = await Promise.all([
   amount: Number(row.amount || 0),
   game_cost: Number(row.game_cost || 0),
   delivery_fee: Number(row.delivery_fee || 0),
+  proof_images: row.proof_images || [],
 
   form_data: {
     forms: row.forms || [],
@@ -350,6 +506,7 @@ const [lottoResult, chanceResult, game123Result] = await Promise.all([
   tableName: "game123_forms",
   gameEmoji: "🔢",
   gameColor: "#ea580c",
+  proof_images: row.proof_images || [],
   status: row.status || "pending",
   created_at: row.created_at,
   form_data: {
@@ -371,11 +528,24 @@ if (
 }
 
 function renderList() {
-  const filtered = currentFilter === "all" ? ORDERS : ORDERS.filter(o => o.status === currentFilter);
-  const list = document.getElementById('ordersList');
+  const allFiltered =
+    currentFilter === "all"
+      ? ORDERS
+      : ORDERS.filter(o => o.status === currentFilter);
 
+  const totalPages = Math.min(
+    MAX_PAGES,
+    Math.ceil(allFiltered.length / PAGE_SIZE)
+  );
+
+  if (currentPage > totalPages) currentPage = 1;
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const filtered = allFiltered.slice(start, start + PAGE_SIZE);
+
+  const list = document.getElementById('ordersList');
   // counts
-  ['all','pending','approved','rejected'].forEach(k => {
+['all','pending','approved','paid'].forEach(k => {
     const c = k === 'all' ? ORDERS.length : ORDERS.filter(o => o.status === k).length;
     document.getElementById('count-' + k).textContent = c;
   });
@@ -401,6 +571,40 @@ function renderList() {
       <span class="card-arrow">‹</span>
     </button>
   `).join('');
+
+    if (totalPages > 1) {
+    list.innerHTML += `
+      <div style="display:flex; justify-content:center; gap:8px; margin-top:16px; flex-wrap:wrap;">
+        ${Array.from({ length: totalPages }, (_, i) => {
+          const page = i + 1;
+          return `
+            <button
+              onclick="goToPage(${page})"
+              style="
+                width:34px;
+                height:34px;
+                border:none;
+                border-radius:10px;
+                font-weight:bold;
+                cursor:pointer;
+                background:${page === currentPage ? '#1f2937' : 'white'};
+                color:${page === currentPage ? 'white' : '#1f2937'};
+                box-shadow:0 2px 8px rgba(0,0,0,.12);
+              "
+            >
+              ${page}
+            </button>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+}
+
+function goToPage(page) {
+  currentPage = page;
+  renderList();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function buildFormDetails(order) {
@@ -568,8 +772,8 @@ currentOpenOrderId = id;
     ${buildFormDetails(order)}
   </div>`;
 
-  if (isAdmin && order.status !== "approved") {
-  html += `
+if (isAdmin && order.status === "pending") {
+    html += `
     <button onclick="approveOrder('${order.id}', '${order.tableName}')" style="width:100%; padding:14px; border:none; border-radius:14px; background:#16a34a; color:white; font-weight:bold; font-size:16px;">
       אשר טופס
     </button>
@@ -604,6 +808,51 @@ currentOpenOrderId = id;
     </div>
   </div>
 `;
+
+if (order.status === "paid") {
+  html += `
+    <div class="details-box">
+      <div class="box-label">📸 תמונות אימות לביצוע השליחות</div>
+
+      ${
+        order.proof_images && order.proof_images.length > 0
+          ? `<div class="images-grid">
+              ${order.proof_images.map((url, i) =>
+                `<img class="receipt-img" src="${url}" alt="אימות ${i+1}" onclick="openLightbox('${url}')" />`
+              ).join("")}
+            </div>`
+          : `<div style="color:#999;font-size:13px;">
+              עדיין לא הועלו תמונות אימות
+            </div>`
+      }
+
+      ${
+        isAdmin
+          ? `
+            <div style="margin-top:12px;">
+              <input
+                type="file"
+                id="proofImagesInput"
+                accept="image/*"
+                multiple
+                style="display:none;"
+                onchange="uploadProofImages('${order.id}', '${order.tableName}')"
+              >
+
+              <button
+                class="pay-btn"
+                style="background:linear-gradient(135deg,#16a34a,#15803d);"
+                onclick="document.getElementById('proofImagesInput').click()"
+              >
+                📤 העלאת תמונות אימות
+              </button>
+            </div>
+          `
+          : ""
+      }
+    </div>
+  `;
+}
 
   // Pending info
   if (order.status === 'pending') {
@@ -745,6 +994,7 @@ const lottoForms = (lottoResult.data || []).map(row => ({
   game_cost: row.game_cost || 0,
   delivery_fee: row.delivery_fee || 0,
   extra_cost: row.extra_cost || 0,
+  proof_images: row.proof_images || [],
 
   form_data: {
     tables: row.tables || [],
@@ -767,6 +1017,7 @@ const chanceForms = (chanceResult.data || []).map(row => ({
   amount: row.amount || 0,
   game_cost: row.game_cost || 0,
   delivery_fee: row.delivery_fee || 0,
+  proof_images: row.proof_images || [],
 
   form_data: {
     forms: row.forms || [],
@@ -783,6 +1034,7 @@ const chanceForms = (chanceResult.data || []).map(row => ({
     game: "123",
     gameLabel: "123",
     gameEmoji: "🔢",
+    proof_images: row.proof_images || [],
     gameColor: "#ea580c",
     status: row.status || "pending",
     created_at: row.created_at,
@@ -868,6 +1120,112 @@ function listenToMyForms(userId) {
       () => loadMyForms()
     )
     .subscribe();
+}
+
+
+function showAboutModal() {
+  currentOpenOrderId = null;
+
+  document.getElementById('modalGameName').textContent = 'אודות השירות';
+  document.getElementById('modalGameName').style.color = '#222';
+  document.getElementById('modalDate').textContent = '';
+
+  document.getElementById('modalBody').innerHTML = `
+    <div class="modal-text1" style="text-align:right; line-height:1.9;">
+      הטקסט שלך כאן...
+    </div>
+  `;
+
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function showWithdrawModal() {
+  const withdrawAmount = 0; // בהמשך יגיע מסופבייס
+
+  document.getElementById('modalGameName').textContent = 'בקשת משיכה';
+  document.getElementById('modalGameName').style.color = '#15803d';
+  document.getElementById('modalDate').textContent = '';
+
+  document.getElementById('modalBody').innerHTML = `
+    <div class="details-box" style="text-align:center;">
+
+      <div style="
+        font-size:34px;
+        font-weight:bold;
+        color:#15803d;
+        margin-bottom:12px;
+      ">
+        ₪${withdrawAmount}
+      </div>
+
+      <div style="
+        line-height:1.8;
+        color:#555;
+        margin-bottom:18px;
+      ">
+        כאן יופיע הסבר על תהליך המשיכה.
+        ניתן להגיש בקשת משיכה באמצעות וואצאפ
+        והבקשה תטופל בהתאם לתנאי השירות.
+      </div>
+
+      <button class="pay-btn" onclick="openWithdrawWhatsapp()">
+        הגשת בקשת משיכה
+      </button>
+
+    </div>
+  `;
+
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+  
+async function uploadProofImages(orderId, tableName) {
+  if (!isAdmin) {
+    alert("אין הרשאה");
+    return;
+  }
+
+  const input = document.getElementById("proofImagesInput");
+  const files = Array.from(input.files || []);
+
+  if (files.length === 0) return;
+
+  const order = ORDERS.find(o => o.id === orderId);
+  if (!order) {
+    alert("הטופס לא נמצא");
+    return;
+  }
+
+  try {
+    const uploadedUrls = [];
+
+    for (const file of files) {
+      const url = await uploadImageToR2(file);
+      uploadedUrls.push(url);
+    }
+
+    const newImages = [
+      ...(order.proof_images || []),
+      ...uploadedUrls
+    ];
+
+    const { error } = await supabaseClient
+      .from(tableName)
+      .update({ proof_images: newImages })
+      .eq("id", orderId);
+
+    if (error) throw error;
+
+    order.proof_images = newImages;
+
+    alert("התמונות הועלו בהצלחה");
+    openModal(orderId);
+
+  } catch (err) {
+    console.error(err);
+    alert("שגיאה בהעלאת תמונות ההוכחה");
+  }
 }
 
 // Init
