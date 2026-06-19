@@ -419,6 +419,7 @@
   background: white;
   border-radius: 18px;
   padding: 22px;
+  padding-top: 0;
   text-align: center;
   box-shadow: 0 10px 35px rgba(0,0,0,0.35);
 }
@@ -427,6 +428,17 @@
   font-size: 20px;
   font-weight: bold;
   margin-bottom: 10px;
+}
+
+.for-m {
+  margin-top: 10px;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .for-m {
+    white-space: normal;
+  }
 }
 
 .modal-text {
@@ -507,13 +519,18 @@ font-family: sans-serif ;
 }
 
 .modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
+  position: sticky;
+  top:0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+  background: white;
+padding-bottom: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+align-items: center;
+
   border-bottom: 1px solid #eee;
-  padding-bottom: 12px;
 }
 
 .close-btn {
@@ -1017,10 +1034,11 @@ function confirmCurrentForm() {
     return;
   }
 
-  savedForms.push({
-    numbers: [...selectedRegular].sort((a, b) => a - b),
-    strong: selectedStrong
-  });
+ savedForms.push({
+  numbers: [...selectedRegular].sort((a, b) => a - b),
+  strong: selectedStrong,
+  extra: document.getElementById("extraCheck").checked
+});
 
   renderSavedForms();
   clearAll();
@@ -1049,20 +1067,21 @@ function renderSavedForms() {
     return;
   }
 
-  list.innerHTML = savedForms.map((form, index) => `
-    <div class="saved-form">
-      <button class="form-delete-btn" onclick="deleteSavedForm(${index})">✕</button>
+ list.innerHTML = savedForms.map((form, index) => `
+  <div class="saved-form">
+    <button class="form-delete-btn" onclick="deleteSavedForm(${index})">✕</button>
 
-   <div class="saved-form-content">
-  <strong>טבלה ${index + 1}</strong><br>
+    <div class="saved-form-content">
+      <strong>טבלה ${index + 1}</strong><br>
 
-  מספרים: ${form.numbers.join(', ')}<br>
-  חזק: ${form.strong}<br><br>
+      מספרים: ${form.numbers.join(', ')}<br>
+      חזק: ${form.strong}<br>
+      אקסטרה: ${form.extra ? "כן סומן" : "לא סומן"}<br><br>
 
-  עלות טבלה: 3 ₪
-</div>
+      עלות טבלה: 3 ₪
     </div>
-  `).join('');
+  </div>
+`).join('');
 
   const price = getLottoPriceSummary();
 
@@ -1076,7 +1095,6 @@ list.innerHTML += `
 
     טבלאות: ${price.tablesCount}<br>
     מספר הגרלות: ${price.draws === 1 ? "הגרלה אחת הקרובה" : price.draws + " הגרלות"}<br>
-    אקסטרה: ${price.extra ? "כן" : "לא"}<br>
 
     עלות טבלאות: ${price.gameCost} ₪<br>
     עלות אקסטרה: ${price.extraCost} ₪<br>
@@ -1141,15 +1159,16 @@ function showLogoutModal() {
 
   function showAboutModal() {
   openModal(`
+
+
       <div class="modal-header">
   <button class="close-btn" onclick="closeModal()">
     ✕
   </button>
 
-  <div class="modal-title">ℹ️ אודות השירות</div>
+  <div class="modal-title for-m">ℹ️ אודות השירות</div>
 </div>
 
-<div class="modal-text1" style="text-align:right; line-height:1.9;"></div>
 
     <div class="modal-text1" style="text-align:right; line-height:1.9;">
       בטופס זה ניתן למלא טבלאות באופן ידני או באמצעות מילוי אוטומטי.<br><br>
@@ -1198,9 +1217,8 @@ function showLogoutModal() {
 וממלא את הטפסים בהתאם לפרטים שהוזנו על ידי הלקוח.
 </p>
 
-
-    </div>
-
+  
+</div>
     
   `);
 }
