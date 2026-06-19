@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ארנק זכיות - טופס צ'ק</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playpen+Sans+Hebrew:wght@400;700;800&family=Suez+One&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #cccccc94; font-family: 'Playpen Sans Hebrew', cursive; direction: rtl; min-height: 100vh; }
+
+    /* TOP BAR */
+    .topbar {
+      width: 100%; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px;
+      background: linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 100%);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar a { display: flex; align-items: center; gap: 8px; color: white; text-decoration: none; font-weight: bold; font-size: 14px; transition: opacity .2s; }
+    .topbar a:hover { opacity: .75; }
+    .topbar-title { color: white; font-weight: bold; font-size: 16px; }
+
+    /* MAIN */
+    .main { max-width: 440px; margin: 0 auto; padding: 24px 16px 60px; display: flex; flex-direction: column; gap: 22px; }
+
+    /* PAGE TITLE */
+    .page-header { text-align: center; }
+    .page-icon { font-size: 44px; margin-bottom: 6px; display: block; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    .page-title { font-family: 'Suez One', serif; font-size: 28px; color: #1f2937; }
+    .page-subtitle { color: #888; font-size: 13px; margin-top: 2px; }
+
+    /* ─── BALANCE CARD ───────────────────── */
+    .balance-card {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-radius: 24px; padding: 28px 24px;
+      color: white; position: relative; overflow: hidden;
+      box-shadow: 0 12px 40px rgba(15,23,42,.35);
+    }
+    .balance-card::before {
+      content: ''; position: absolute; top: -60px; right: -40px;
+      width: 180px; height: 180px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.06) 0%, transparent 70%);
+    }
+    .balance-card::after {
+      content: ''; position: absolute; bottom: -30px; left: -20px;
+      width: 120px; height: 120px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.04) 0%, transparent 70%);
+    }
+    .balance-label { font-size: 13px; color: #94a3b8; font-weight: bold; position: relative; z-index: 1; margin-bottom: 6px; }
+    .balance-row { display: flex; align-items: baseline; gap: 6px; position: relative; z-index: 1; }
+    .balance-currency { font-size: 22px; color: #fbbf24; font-weight: bold; }
+    .balance-amount { font-family: 'Suez One', serif; font-size: 48px; color: #fbbf24; line-height: 1; }
+    .balance-decor { position: relative; z-index: 1; display: flex; gap: 4px; margin-top: 16px; }
+    .decor-dot { width: 6px; height: 6px; border-radius: 50%; background: #fbbf24; opacity: .5; }
+    .decor-dot:nth-child(2) { opacity: .35; }
+    .decor-dot:nth-child(3) { opacity: .2; }
+    .decor-dot:nth-child(4) { opacity: .1; }
+
+    /* ─── STATS ROW ──────────────────────── */
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .stat-card {
+      background: white; border-radius: 18px; padding: 16px;
+      box-shadow: 0 3px 14px rgba(0,0,0,.07);
+      display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px;
+    }
+    .stat-icon { font-size: 24px; }
+    .stat-value { font-family: 'Suez One', serif; font-size: 20px; color: #1f2937; }
+    .stat-label { font-size: 12px; color: #999; font-weight: bold; }
+
+    /* ─── INFO BOX ───────────────────────── */
+    .info-box {
+      background: white; border-radius: 18px; padding: 18px 20px;
+      box-shadow: 0 3px 14px rgba(0,0,0,.07);
+      border-right: 4px solid #2563eb;
+    }
+    .info-title { font-family: 'Suez One', serif; font-size: 15px; color: #1f2937; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .info-text { font-size: 13px; color: #666; line-height: 1.7; }
+
+    /* ─── WITHDRAW BUTTON ────────────────── */
+    .withdraw-section { display: flex; flex-direction: column; gap: 10px; }
+    .withdraw-btn {
+      width: 100%; padding: 18px 24px; border-radius: 18px; border: none; cursor: pointer;
+      font-family: 'Playpen Sans Hebrew', cursive; font-weight: bold; font-size: 17px;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      background: linear-gradient(135deg, #25d366, #128c7e);
+      color: white;
+      box-shadow: 0 8px 28px rgba(37,211,102,.35);
+      transition: transform .15s, box-shadow .2s;
+      position: relative; overflow: hidden;
+    }
+    .withdraw-btn::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,.1) 50%, transparent 60%);
+      background-size: 200% 200%; animation: shimmer 2.5s infinite;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 200%; } 100% { background-position: -200% -200%; } }
+    .withdraw-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(37,211,102,.45); }
+    .withdraw-btn:active { transform: scale(.97); }
+    .withdraw-btn * { position: relative; z-index: 1; }
+    .withdraw-hint { text-align: center; font-size: 11px; color: #aaa; }
+
+    /* ─── TRANSACTIONS LIST ──────────────── */
+    .tx-section { display: flex; flex-direction: column; gap: 10px; }
+    .tx-title { font-family: 'Suez One', serif; font-size: 17px; color: #333; display: flex; align-items: center; gap: 8px; }
+
+    .tx-card {
+      background: white; border-radius: 16px; padding: 14px 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.05);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .tx-icon-wrap {
+      width: 42px; height: 42px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      font-size: 20px;
+    }
+    .tx-icon-wrap.win  { background: #fef3c7; }
+    .tx-icon-wrap.withdraw { background: #dbeafe; }
+    .tx-info { flex: 1; min-width: 0; }
+    .tx-type { font-weight: bold; font-size: 14px; color: #1f2937; }
+    .tx-date { font-size: 11px; color: #aaa; }
+    .tx-amount { font-family: 'Suez One', serif; font-weight: bold; font-size: 16px; flex-shrink: 0; }
+    .tx-amount.positive { color: #16a34a; }
+    .tx-amount.negative { color: #dc2626; }
+    .tx-amount.pending { color: #f59e0b; }
+
+    .empty-tx { text-align: center; padding: 24px 0; color: #ccc; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="my-forms.html">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    חזרה
+  </a>
+  <span class="topbar-title">טופס צ'ק</span>
+</div>
+
+<div class="main">
+  <!-- Header -->
+  <div class="page-header">
+   <span class="page-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44"
+viewBox="0 0 24 24" fill="none" stroke="currentColor"
+stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="M20 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h15a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/>
+<path d="M16 12h.01"/>
+</svg>
+</span>
+    <h1 class="page-title">ארנק זכיות</h1>
+    <p class="page-subtitle">כל הזכיות שלך במקום אחד</p>
+  </div>
+
+  <!-- Balance Card -->
+  <div class="balance-card">
+    <div class="balance-label">יתרה זמינה למשיכה</div>
+    <div class="balance-row">
+      <span class="balance-currency">₪</span>
+      <span class="balance-amount" id="balanceAmount">₪0</span>
+    </div>
+    <div class="balance-decor">
+      <span class="decor-dot"></span><span class="decor-dot"></span><span class="decor-dot"></span><span class="decor-dot"></span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+<span class="stat-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"
+viewBox="0 0 24 24" fill="none" stroke="currentColor"
+stroke-width="2">
+<path d="M8 21h8"/>
+<path d="M12 17v4"/>
+<path d="M7 4h10v3a5 5 0 0 1-10 0z"/>
+<path d="M5 7H3a2 2 0 0 0 2 2"/>
+<path d="M19 7h2a2 2 0 0 1-2 2"/>
+</svg>
+</span>
+      <span class="stat-value" id="totalWins">₪0</span>
+      <span class="stat-label">סה"כ זכיות</span>
+    </div>
+    <div class="stat-card">
+<span class="stat-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26"
+viewBox="0 0 24 24" fill="none" stroke="currentColor"
+stroke-width="2">
+<path d="M3 10h18"/>
+<path d="M7 15h.01"/>
+<rect x="2" y="5" width="20" height="14" rx="2"/>
+</svg>
+</span>
+      <span class="stat-value" id="totalWithdrawn">₪0</span>
+      <span class="stat-label">נמשך עד כה</span>
+    </div>
+  </div>
+
+  <!-- Info Box -->
+  <div class="info-box">
+    <div class="info-title">ℹ️ איך זה עובד?</div>
+    <div class="info-text">
+      לאחר שטופס המשחק שלך מאושר — סכום הזכייה מתווסף אוטומטית לארנק.<br>
+      ניתן למשוך את הכסף בכל עת דרך ווצאפ ישירות לצוות שלנו.<br>
+      משיכות מטופלות תוך <strong>עד 24 שעות</strong> בימי עסקים.
+    </div>
+  </div>
+
+  <!-- Transactions -->
+  <div class="tx-section">
+    <div class="tx-title">📋 היסטוריית תנועות</div>
+    <div id="txList"></div>
+  </div>
+
+  <!-- Withdraw Button -->
+  <div class="withdraw-section">
+    <button class="withdraw-btn" onclick="requestWithdraw()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      בקש משיכת זכיות דרך ווצאפ
+    </button>
+    <p class="withdraw-hint">הבקשה תישלח אוטומטית עם פרטי הארנק שלך</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const SUPABASE_URL = "https://ikjgwgkucvfvujuodflf.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_Chq48eYxHD3Y-cmbK8JoxA_luOwIJ9y";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+const WHATSAPP_NUMBER = "972500000000"; // שנה למספר שלך בלי +
+
+let currentWallet = {
+  balance: 0,
+  total_wins: 0,
+  total_withdrawn: 0
+};
+
+function formatCurrency(n) {
+  return "₪" + Number(n || 0).toLocaleString("he-IL");
+}
+
+function renderStats(wallet) {
+  document.getElementById("balanceAmount").textContent =
+    Number(wallet.balance || 0).toLocaleString("he-IL");
+
+  document.getElementById("totalWins").textContent =
+    formatCurrency(wallet.total_wins || 0);
+
+  document.getElementById("totalWithdrawn").textContent =
+    formatCurrency(wallet.total_withdrawn || 0);
+}
+
+function renderTransactions(transactions) {
+  const list = document.getElementById("txList");
+
+  if (!transactions || transactions.length === 0) {
+    list.innerHTML = '<div class="empty-tx">אין תנועות עדיין</div>';
+    return;
+  }
+
+  list.innerHTML = transactions.map(tx => {
+    const isWin = tx.type === "win";
+    const isWithdraw = tx.type === "withdraw";
+
+    const icon = isWin ? "🏆" : "💸";
+    const iconClass = isWin ? "win" : "withdraw";
+
+    const label =
+      isWin ? "זכייה" :
+      isWithdraw ? "משיכה" :
+      "עדכון ארנק";
+
+    const amountNumber = Number(tx.amount || 0);
+    const amountFormatted =
+      (amountNumber > 0 ? "+" : "") + formatCurrency(amountNumber);
+
+    const amountClass =
+      amountNumber > 0 ? "positive" :
+      amountNumber < 0 ? "negative" :
+      "pending";
+
+    const dateFormatted = new Date(tx.created_at).toLocaleDateString("he-IL", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+
+    return `
+      <div class="tx-card">
+        <div class="tx-icon-wrap ${iconClass}">${icon}</div>
+        <div class="tx-info">
+          <div class="tx-type">${label}${tx.note ? " — " + escapeHtml(tx.note) : ""}</div>
+          <div class="tx-date">${dateFormatted}</div>
+        </div>
+        <div class="tx-amount ${amountClass}">${amountFormatted}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+async function loadWallet() {
+  const { data: userData } = await supabaseClient.auth.getUser();
+  const user = userData.user;
+
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  const { data: wallet, error: walletError } = await supabaseClient
+    .from("wallets")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (walletError) {
+    console.error("wallet error:", walletError);
+    alert("שגיאה בטעינת הארנק");
+    return;
+  }
+
+  currentWallet = wallet || {
+    balance: 0,
+    total_wins: 0,
+    total_withdrawn: 0
+  };
+
+  renderStats(currentWallet);
+
+  const { data: transactions, error: txError } = await supabaseClient
+    .from("wallet_transactions")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (txError) {
+    console.error("transactions error:", txError);
+    alert("שגיאה בטעינת היסטוריית הארנק");
+    return;
+  }
+
+  renderTransactions(transactions || []);
+}
+
+function requestWithdraw() {
+  const balance = Number(currentWallet.balance || 0);
+
+  if (balance <= 0) {
+    alert("אין יתרה זמינה למשיכה");
+    return;
+  }
+
+  const message = encodeURIComponent(
+    `היי, אני מבקש/ת למשוך זכיות מהארנק שלי.\n\n` +
+    `💰 יתרה זמינה: ₪${balance.toLocaleString("he-IL")}\n` +
+    `📋 אשמח לקבל פרטים להמשך התהליך.\n\n` +
+    `תודה רבה!`
+  );
+
+  window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + message, "_blank");
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str || "";
+  return div.innerHTML;
+}
+
+loadWallet();
+
+</script>
+</body>
+</html>
